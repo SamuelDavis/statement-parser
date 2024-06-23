@@ -13,7 +13,7 @@ import styles from "../index.module.css";
 type Props<Header extends string = string> = ExtendProps<
   "fieldset",
   {
-    data: Upload<Header>;
+    upload: Upload<Header>;
     onComplete: (mapping: Record<NormalHeader, Header>) => void;
   }
 >;
@@ -47,7 +47,7 @@ function isComplete<
 export default function HeaderSelect<Header extends string = string>(
   props: Props<Header>,
 ) {
-  const [local, parent] = splitProps(props, ["data", "onComplete"]);
+  const [local, parent] = splitProps(props, ["upload", "onComplete"]);
   const [getErrors, setErrors] = createSignal<
     Partial<Record<NormalHeader, string>>
   >({});
@@ -57,15 +57,15 @@ export default function HeaderSelect<Header extends string = string>(
 
   createEffect(() => {
     const mapping = getMapping();
-    if (isComplete(normalHeaders, local.data.headers, mapping))
+    if (isComplete(normalHeaders, local.upload.headers, mapping))
       local.onComplete(mapping);
   });
 
   function validate(normal: NormalHeader, header: Header) {
     switch (normal) {
       case "date":
-        for (let i = 0; i < local.data.rows.length; i++) {
-          const { [header]: value } = local.data.rows[i];
+        for (let i = 0; i < local.upload.rows.length; i++) {
+          const { [header]: value } = local.upload.rows[i];
           const date = new Date(value);
           if (isNaN(date.getTime())) {
             return `Invalid Date: could not parse date in ${header} on row ${i}.`;
@@ -73,8 +73,8 @@ export default function HeaderSelect<Header extends string = string>(
         }
         return;
       case "amount":
-        for (let i = 0; i < local.data.rows.length; i++) {
-          const { [header]: value } = local.data.rows[i];
+        for (let i = 0; i < local.upload.rows.length; i++) {
+          const { [header]: value } = local.upload.rows[i];
           if (isNaN(parseFloat(value))) {
             return `Invalid Amount: could not parse number in ${header} on row ${i}.`;
           }
@@ -88,7 +88,7 @@ export default function HeaderSelect<Header extends string = string>(
     if (!isHtml("select", select)) throw new TypeError();
     const { name, value } = select;
     if (!includes(normalHeaders, name)) throw new TypeError();
-    if (!includes(local.data.headers, value)) throw new TypeError();
+    if (!includes(local.upload.headers, value)) throw new TypeError();
     const error = validate(name, value);
     if (error) return setErrors((errors) => ({ ...errors, [name]: error }));
     setErrors(({ [name]: _, ...errors }) => errors);
@@ -119,7 +119,7 @@ export default function HeaderSelect<Header extends string = string>(
                 <Show when={!(normal in getMapping())}>
                   <option />
                 </Show>
-                <For each={local.data.headers}>
+                <For each={local.upload.headers}>
                   {(header) => (
                     <option value={header} selected={header === mappedHeader}>
                       {header}

@@ -21,8 +21,17 @@ export type Upload<Header extends string = string> = {
   rows: Record<Header, string>[];
 };
 
-export const normalHeaders = ["date", "description", "amount"] as const;
-export type NormalHeader = (typeof normalHeaders)[number];
+export type NormalRow = {
+  date: Date;
+  description: string;
+  amount: number;
+};
+export type NormalHeader = keyof NormalRow;
+export const normalHeaders: readonly NormalHeader[] = [
+  "date",
+  "description",
+  "amount",
+] as const;
 
 export function includes<List extends readonly any[]>(
   list: List,

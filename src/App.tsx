@@ -3,7 +3,7 @@ import UploadFlow from "./UploadFlow";
 function App() {
   return (
     <main>
-      <UploadFlow />
+      <UploadFlow onSubmit={console.log} />
     </main>
   );
 }

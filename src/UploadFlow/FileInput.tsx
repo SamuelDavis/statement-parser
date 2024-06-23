@@ -7,12 +7,11 @@ type Props = ExtendProps<
   "fieldset",
   {
     onUpload: (upload: Upload) => void;
-    onReset: () => void;
   }
 >;
 
 export default function FileInput(props: Props) {
-  const [local, parent] = splitProps(props, ["onUpload", "onReset"]);
+  const [local, parent] = splitProps(props, ["onUpload"]);
   const [getErrors, setErrors] = createSignal<string[]>([]);
 
   async function onInput(e: Event) {
@@ -20,11 +19,7 @@ export default function FileInput(props: Props) {
     if (!isHtml("input", input)) throw new TypeError();
 
     const file = input.files?.item(0);
-    if (!(file instanceof File)) {
-      setErrors([]);
-      local.onReset();
-      return;
-    }
+    if (!(file instanceof File)) return setErrors([]);
 
     const name = file.name;
     const text = await file.text();
@@ -41,7 +36,6 @@ export default function FileInput(props: Props) {
 
     setErrors(errors.map(({ row, message }) => `${message} on row ${row}.`));
     if (errors.length === 0) local.onUpload({ name, headers, rows });
-    else local.onReset();
   }
 
   return (
