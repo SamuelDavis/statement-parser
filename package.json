@@ -1,0 +1,21 @@
+{
+  "name": "statement-parser",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@picocss/pico": "^2.0.6",
+    "solid-js": "^1.8.15"
+  },
+  "devDependencies": {
+    "prettier": "^3.3.2",
+    "typescript": "5.4",
+    "vite": "^5.2.0",
+    "vite-plugin-solid": "^2.10.2"
+  }
+}
