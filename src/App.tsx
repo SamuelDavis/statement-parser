@@ -1,5 +1,11 @@
+import UploadFlow from "./UploadFlow";
+
 function App() {
-  return <main />;
+  return (
+    <main>
+      <UploadFlow />
+    </main>
+  );
 }
 
 export default App;

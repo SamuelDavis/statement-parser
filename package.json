@@ -10,9 +10,11 @@
   },
   "dependencies": {
     "@picocss/pico": "^2.0.6",
+    "papaparse": "^5.4.1",
     "solid-js": "^1.8.15"
   },
   "devDependencies": {
+    "@types/papaparse": "^5.3.14",
     "prettier": "^3.3.2",
     "typescript": "5.4",
     "vite": "^5.2.0",
