@@ -20,3 +20,13 @@ export type Upload<Header extends string = string> = {
   headers: Header[];
   rows: Record<Header, string>[];
 };
+
+export const normalHeaders = ["date", "description", "amount"] as const;
+export type NormalHeader = (typeof normalHeaders)[number];
+
+export function includes<List extends readonly any[]>(
+  list: List,
+  value: any,
+): value is List[number] {
+  return list.includes(value);
+}

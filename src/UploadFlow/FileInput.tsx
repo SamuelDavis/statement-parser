@@ -4,9 +4,9 @@ import ErrorList from "../ErrorList.tsx";
 import { parse } from "papaparse";
 
 type Props = ExtendProps<
-  "input",
+  "fieldset",
   {
-    onUpload: (data: Upload) => void;
+    onUpload: (upload: Upload) => void;
     onReset: () => void;
   }
 >;
@@ -28,7 +28,7 @@ export default function FileInput(props: Props) {
 
     const name = file.name;
     const text = await file.text();
-    const data = parse<Record<string, string>>(text, {
+    const parsed = parse<Record<string, string>>(text, {
       header: true,
       skipEmptyLines: "greedy",
     });
@@ -36,15 +36,16 @@ export default function FileInput(props: Props) {
       errors,
       meta: { fields: headers },
       data: rows,
-    } = data;
+    } = parsed;
     if (!Array.isArray(headers)) throw new TypeError();
 
     setErrors(errors.map(({ row, message }) => `${message} on row ${row}.`));
     if (errors.length === 0) local.onUpload({ name, headers, rows });
+    else local.onReset();
   }
 
   return (
-    <div>
+    <fieldset {...parent}>
       <label for="file">Statement</label>
       <input
         id="file"
@@ -54,9 +55,8 @@ export default function FileInput(props: Props) {
         aria-invalid={getErrors().length > 0 || undefined}
         aria-labelledby="file-errors"
         onInput={onInput}
-        {...parent}
       />
       <ErrorList id="file-errors">{getErrors()}</ErrorList>
-    </div>
+    </fieldset>
   );
 }
