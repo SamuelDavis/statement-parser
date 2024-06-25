@@ -9,7 +9,7 @@ export default function ErrorList(props: Props) {
   return (
     <Show when={getChildren().length > 0}>
       <ul {...parent}>
-        <For each={getChildren()}>{(child) => child}</For>
+        <For each={getChildren()}>{(child) => <li>{child}</li>}</For>
       </ul>
     </Show>
   );
