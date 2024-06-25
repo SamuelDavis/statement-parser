@@ -10,6 +10,18 @@ import FileInput from "./FileInput.tsx";
 import HeaderSelect from "./HeaderSelect.tsx";
 import UploadPreview from "./UploadPreview.tsx";
 
+enum Step {
+  Upload,
+  Mapping,
+  Done,
+}
+
+const labels: Record<Step, string> = {
+  [Step.Upload]: "Upload a Bank Statement",
+  [Step.Mapping]: "Map Statement Columns",
+  [Step.Done]: "Confirm",
+};
+
 function formatValue(
   normal: NormalHeader,
   value: string,
@@ -53,6 +65,11 @@ export default function UploadFlow(props: Props) {
       })
       .sort((a, b) => b.date.getTime() - a.date.getTime());
   };
+  const getStep = () => {
+    if (getMapping()) return Step.Done;
+    if (getUpload()) return Step.Mapping;
+    return Step.Upload;
+  };
 
   function onUpload(upload?: Upload) {
     setUpload(upload);
@@ -70,6 +87,12 @@ export default function UploadFlow(props: Props) {
 
   return (
     <form {...props} onSubmit={onSubmit}>
+      <label>
+        <span>
+          Step {getStep() + 1}: {labels[getStep()]}
+        </span>
+        <progress max={Step.Done} value={getStep()} />
+      </label>
       <FileInput onUpload={onUpload} />
       <Show when={getUpload()}>
         {(getUpload) => (
