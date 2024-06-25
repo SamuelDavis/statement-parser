@@ -6,7 +6,7 @@ import { parse } from "papaparse";
 type Props = ExtendProps<
   "fieldset",
   {
-    onUpload: (upload: Upload) => void;
+    onUpload: (upload: Upload | undefined) => void;
   }
 >;
 
@@ -18,6 +18,7 @@ export default function FileInput(props: Props) {
     const input = e.target;
     if (!isHtml("input", input)) throw new TypeError();
 
+    local.onUpload(undefined);
     const file = input.files?.item(0);
     if (!(file instanceof File)) return setErrors([]);
 
