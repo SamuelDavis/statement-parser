@@ -1,4 +1,17 @@
+fieldset {
+  padding: 0.5em;
+}
+
 .HeaderSelect {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: auto auto;
+  grid-template-areas:
+    "a b c"
+    "d d d";
+  gap: 0.5em;
+}
+
+.HeaderSelect > ul {
+  grid-area: d;
 }

@@ -44,6 +44,32 @@ function isComplete<
   return true;
 }
 
+function validate<Header extends string = string>(
+  rows: Record<Header, string>[],
+  normal: NormalHeader,
+  header: Header,
+) {
+  switch (normal) {
+    case "date":
+      for (let i = 0; i < rows.length; i++) {
+        const { [header]: value } = rows[i];
+        const date = new Date(value);
+        if (isNaN(date.getTime())) {
+          return `Invalid Date: could not parse date in ${header} on row ${i}.`;
+        }
+      }
+      return;
+    case "amount":
+      for (let i = 0; i < rows.length; i++) {
+        const { [header]: value } = rows[i];
+        if (isNaN(parseFloat(value))) {
+          return `Invalid Amount: could not parse number in ${header} on row ${i}.`;
+        }
+      }
+      return;
+  }
+}
+
 export default function HeaderSelect<Header extends string = string>(
   props: Props<Header>,
 ) {
@@ -61,35 +87,13 @@ export default function HeaderSelect<Header extends string = string>(
       local.onComplete(mapping);
   });
 
-  function validate(normal: NormalHeader, header: Header) {
-    switch (normal) {
-      case "date":
-        for (let i = 0; i < local.upload.rows.length; i++) {
-          const { [header]: value } = local.upload.rows[i];
-          const date = new Date(value);
-          if (isNaN(date.getTime())) {
-            return `Invalid Date: could not parse date in ${header} on row ${i}.`;
-          }
-        }
-        return;
-      case "amount":
-        for (let i = 0; i < local.upload.rows.length; i++) {
-          const { [header]: value } = local.upload.rows[i];
-          if (isNaN(parseFloat(value))) {
-            return `Invalid Amount: could not parse number in ${header} on row ${i}.`;
-          }
-        }
-        return;
-    }
-  }
-
   function onInput(e: Event) {
     const select = e.target;
     if (!isHtml("select", select)) throw new TypeError();
     const { name, value } = select;
     if (!includes(normalHeaders, name)) throw new TypeError();
     if (!includes(local.upload.headers, value)) throw new TypeError();
-    const error = validate(name, value);
+    const error = validate(local.upload.rows, name, value);
     if (error) return setErrors((errors) => ({ ...errors, [name]: error }));
     setErrors(({ [name]: _, ...errors }) => errors);
     setMapping((mapping) => ({ ...mapping, [name]: value }));
@@ -111,12 +115,12 @@ export default function HeaderSelect<Header extends string = string>(
                 name={normal}
                 id={`${normal}-select`}
                 aria-invalid={normal in getErrors() || undefined}
-                aria-labelledby={`${normal}-errors`}
+                aria-labelledby="mapping-errors"
                 onInput={onInput}
                 required
                 value={mappedHeader}
               >
-                <Show when={!(normal in getMapping())}>
+                <Show when={!(normal in getMapping() || normal in getErrors())}>
                   <option />
                 </Show>
                 <For each={local.upload.headers}>
@@ -127,13 +131,11 @@ export default function HeaderSelect<Header extends string = string>(
                   )}
                 </For>
               </select>
-              <ErrorList id={`${normal}-errors`}>
-                {getErrors()[normal] ?? []}
-              </ErrorList>
             </div>
           );
         }}
       </For>
+      <ErrorList id={`mapping-errors`}>{Object.values(getErrors())}</ErrorList>
     </fieldset>
   );
 }
