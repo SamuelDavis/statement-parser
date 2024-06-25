@@ -2,6 +2,10 @@ fieldset {
   padding: 0.5em;
 }
 
+fieldset:last-child {
+  margin-bottom: 0;
+}
+
 .HeaderSelect {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
