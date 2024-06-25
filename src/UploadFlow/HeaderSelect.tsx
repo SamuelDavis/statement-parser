@@ -14,7 +14,7 @@ type Props<Header extends string = string> = ExtendProps<
   "fieldset",
   {
     upload: Upload<Header>;
-    onComplete: (mapping: Record<NormalHeader, Header>) => void;
+    onComplete: (mapping: Record<NormalHeader, Header> | undefined) => void;
   }
 >;
 
@@ -83,8 +83,11 @@ export default function HeaderSelect<Header extends string = string>(
 
   createEffect(() => {
     const mapping = getMapping();
-    if (isComplete(normalHeaders, local.upload.headers, mapping))
-      local.onComplete(mapping);
+    local.onComplete(
+      isComplete(normalHeaders, local.upload.headers, mapping)
+        ? mapping
+        : undefined,
+    );
   });
 
   function onInput(e: Event) {
@@ -94,9 +97,13 @@ export default function HeaderSelect<Header extends string = string>(
     if (!includes(normalHeaders, name)) throw new TypeError();
     if (!includes(local.upload.headers, value)) throw new TypeError();
     const error = validate(local.upload.rows, name, value);
-    if (error) return setErrors((errors) => ({ ...errors, [name]: error }));
-    setErrors(({ [name]: _, ...errors }) => errors);
-    setMapping((mapping) => ({ ...mapping, [name]: value }));
+    if (error) {
+      setErrors((errors) => ({ ...errors, [name]: error }));
+      setMapping(({ [name]: _, ...mapping }) => mapping);
+    } else {
+      setErrors(({ [name]: _, ...errors }) => errors);
+      setMapping((mapping) => ({ ...mapping, [name]: value }));
+    }
   }
 
   return (
