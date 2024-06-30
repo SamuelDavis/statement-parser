@@ -1,22 +1,53 @@
 import UploadFlow from "./UploadFlow";
-import { createSignal, Show } from "solid-js";
-import { NormalRow } from "./types.ts";
+import { createEffect, createSignal, Show } from "solid-js";
+import { NormalRow, Statement } from "./types.ts";
+import { StatementTable } from "./StatementTable.tsx";
+
+function loadStatements(): Statement[] {
+  const localStatements = JSON.parse(
+    localStorage.getItem("statements") ?? "",
+  ) as Statement[];
+  if (!Array.isArray(localStatements)) throw new TypeError();
+
+  return localStatements.map(({ rows, ...statement }) => ({
+    ...statement,
+    rows: rows.map(({ date, description, amount }) => ({
+      date: new Date(date.toString()),
+      description,
+      amount: parseFloat(amount.toString()),
+    })),
+  }));
+}
 
 function App() {
   const [getOpen, setOpen] = createSignal(false);
 
+  const [getStatements, setStatements] =
+    createSignal<Statement[]>(loadStatements());
+  const getRows = () => getStatements().flatMap((statement) => statement.rows);
+
+  createEffect(() => {
+    const statements = getStatements();
+    if (statements.length)
+      localStorage.setItem("statements", JSON.stringify(statements));
+  });
+
   function onSubmit(_: Event, name: string, rows: NormalRow[]) {
     setOpen(false);
-    console.group(name);
-    console.log(rows);
-    console.groupEnd();
+    setStatements((statements) => [
+      ...statements.filter((statement) => statement.name !== name),
+      { name, rows, date: new Date() },
+    ]);
   }
 
   return (
     <main>
-      <header>
-        <button onClick={() => setOpen(true)}>Upload</button>
-      </header>
+      <article>
+        <header>
+          <button onClick={() => setOpen(true)}>Upload</button>
+        </header>
+        <StatementTable rows={getRows()} />
+      </article>
       <Show when={getOpen()}>
         <dialog open>
           <article>

@@ -39,3 +39,9 @@ export function includes<List extends readonly any[]>(
 ): value is List[number] {
   return list.includes(value);
 }
+
+export type Statement = {
+  name: string;
+  date: Date;
+  rows: NormalRow[];
+};
