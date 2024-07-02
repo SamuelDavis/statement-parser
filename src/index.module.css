@@ -19,3 +19,7 @@ fieldset:last-child {
 .HeaderSelect > ul {
   grid-area: d;
 }
+
+.Match {
+  background-color: rgba(255, 255, 0, 0.2);
+}

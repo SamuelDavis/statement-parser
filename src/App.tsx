@@ -2,6 +2,7 @@ import UploadFlow from "./UploadFlow";
 import { createEffect, createSignal, Show } from "solid-js";
 import { NormalRow, Statement } from "./types.ts";
 import { StatementTable } from "./StatementTable.tsx";
+import TagForm from "./TagForm.tsx";
 
 function loadStatements(): Statement[] {
   const localStatements = JSON.parse(
@@ -24,7 +25,11 @@ function App() {
 
   const [getStatements, setStatements] =
     createSignal<Statement[]>(loadStatements());
-  const getRows = () => getStatements().flatMap((statement) => statement.rows);
+  const [getRegExp, setRegExp] = createSignal<RegExp | undefined>();
+  const getRows = () =>
+    getStatements()
+      .flatMap((statement) => statement.rows)
+      .filter((row) => getRegExp()?.test(row.description) ?? true);
 
   createEffect(() => {
     const statements = getStatements();
@@ -46,7 +51,8 @@ function App() {
         <header>
           <button onClick={() => setOpen(true)}>Upload</button>
         </header>
-        <StatementTable rows={getRows()} />
+        <TagForm onInput={setRegExp} />
+        <StatementTable rows={getRows()} regex={getRegExp()} />
       </article>
       <Show when={getOpen()}>
         <dialog open>
