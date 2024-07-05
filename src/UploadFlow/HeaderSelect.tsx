@@ -1,148 +1,64 @@
-import {
-  ExtendProps,
-  includes,
-  isHtml,
-  NormalHeader,
-  normalHeaders,
-  Upload,
-} from "../types.ts";
-import { createEffect, createSignal, For, Show, splitProps } from "solid-js";
-import ErrorList from "../ErrorList.tsx";
-import styles from "../index.module.css";
+import { ExtendProps, includes, isHtml, Upload } from "../types.ts";
+import { createSignal, For, Show, splitProps } from "solid-js";
 
-type Props<Header extends string = string> = ExtendProps<
-  "fieldset",
-  {
-    upload: Upload<Header>;
-    onComplete: (mapping: Record<NormalHeader, Header> | undefined) => void;
-  }
->;
-
-function isComplete<
-  Keys extends readonly string[],
-  Values extends readonly string[],
+export default function HeaderSelect<
+  Name extends string,
+  Option extends string,
 >(
-  keys: Keys,
-  values: Values,
-  mapping: any,
-): mapping is Record<NormalHeader, any> {
-  if (!mapping || typeof mapping !== "object") return false;
-
-  for (const normal of normalHeaders) {
-    const mapped = mapping[normal];
-    if (!includes(keys, normal)) return false;
-    if (!includes(values, mapped)) return false;
-
-    // missing
-    if (!(normal in mapping)) return false;
-
-    // duplicate
-    if (Object.values(mapping).filter((value) => value === mapped).length > 1)
-      return false;
-  }
-
-  return true;
-}
-
-function validate<Header extends string = string>(
-  rows: Record<Header, string>[],
-  normal: NormalHeader,
-  header: Header,
+  props: ExtendProps<
+    "select",
+    {
+      name: Name;
+      options: Option[];
+      rows: Upload["rows"];
+      onInput: (name: Name, option: Option, e: Event) => boolean;
+    }
+  >,
 ) {
-  switch (normal) {
-    case "date":
-      for (let i = 0; i < rows.length; i++) {
-        const { [header]: value } = rows[i];
-        const date = new Date(value);
-        if (isNaN(date.getTime())) {
-          return `Invalid Date: could not parse date in ${header} on row ${i}.`;
-        }
-      }
-      return;
-    case "amount":
-      for (let i = 0; i < rows.length; i++) {
-        const { [header]: value } = rows[i];
-        if (isNaN(parseFloat(value))) {
-          return `Invalid Amount: could not parse number in ${header} on row ${i}.`;
-        }
-      }
-      return;
-  }
-}
-
-export default function HeaderSelect<Header extends string = string>(
-  props: Props<Header>,
-) {
-  const [local, parent] = splitProps(props, ["upload", "onComplete"]);
-  const [getErrors, setErrors] = createSignal<
-    Partial<Record<NormalHeader, string>>
-  >({});
-  const [getMapping, setMapping] = createSignal<
-    Partial<Record<NormalHeader, Header>>
-  >({});
-
-  createEffect(() => {
-    const mapping = getMapping();
-    local.onComplete(
-      isComplete(normalHeaders, local.upload.headers, mapping)
-        ? mapping
-        : undefined,
-    );
-  });
+  const [local, parent] = splitProps(props, [
+    "name",
+    "options",
+    "rows",
+    "onInput",
+  ]);
+  const [getIsValid, setIsValid] = createSignal(true);
+  const [getValue, setValue] = createSignal<Option | undefined>();
+  const [getIsFresh, setIsFresh] = createSignal(true);
+  const getIsInvalid = () => {
+    const isInvalid = !getIsValid();
+    return getIsFresh() ? isInvalid || undefined : isInvalid;
+  };
 
   function onInput(e: Event) {
     const select = e.target;
     if (!isHtml("select", select)) throw new TypeError();
-    const { name, value } = select;
-    if (!includes(normalHeaders, name)) throw new TypeError();
-    if (!includes(local.upload.headers, value)) throw new TypeError();
-    const error = validate(local.upload.rows, name, value);
-    if (error) {
-      setErrors((errors) => ({ ...errors, [name]: error }));
-      setMapping(({ [name]: _, ...mapping }) => mapping);
-    } else {
-      setErrors(({ [name]: _, ...errors }) => errors);
-      setMapping((mapping) => ({ ...mapping, [name]: value }));
-    }
+
+    const { value } = select;
+    if (!includes(local.options, value)) throw new TypeError();
+
+    setValue(() => value);
+    setIsFresh(false);
+    setIsValid(local.onInput(local.name, value, e));
   }
 
   return (
-    <fieldset
-      role="group"
+    <select
+      aria-invalid={getIsInvalid()}
+      onInput={onInput}
+      value={getValue()}
+      required
       {...parent}
-      class={`${styles.HeaderSelect} ${parent}`}
     >
-      <For each={normalHeaders}>
-        {(normal) => {
-          const mappedHeader = getMapping()[normal];
-          return (
-            <div>
-              <label for={`${normal}-select`}>{normal}</label>
-              <select
-                name={normal}
-                id={`${normal}-select`}
-                aria-invalid={normal in getErrors() || undefined}
-                aria-labelledby="mapping-errors"
-                onInput={onInput}
-                required
-                value={mappedHeader}
-              >
-                <Show when={!(normal in getMapping() || normal in getErrors())}>
-                  <option />
-                </Show>
-                <For each={local.upload.headers}>
-                  {(header) => (
-                    <option value={header} selected={header === mappedHeader}>
-                      {header}
-                    </option>
-                  )}
-                </For>
-              </select>
-            </div>
-          );
-        }}
+      <Show when={getIsFresh()}>
+        <option />
+      </Show>
+      <For each={local.options}>
+        {(value) => (
+          <option value={value} selected={value === getValue()}>
+            {value}
+          </option>
+        )}
       </For>
-      <ErrorList id={`mapping-errors`}>{Object.values(getErrors())}</ErrorList>
-    </fieldset>
+    </select>
   );
 }

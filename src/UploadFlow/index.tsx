@@ -7,7 +7,7 @@ import {
   Upload,
 } from "../types.ts";
 import FileInput from "./FileInput.tsx";
-import HeaderSelect from "./HeaderSelect.tsx";
+import HeaderMapping from "./HeaderMapping.tsx";
 import UploadPreview from "./UploadPreview.tsx";
 
 enum Step {
@@ -96,7 +96,7 @@ export default function UploadFlow(props: Props) {
       <FileInput onUpload={onUpload} />
       <Show when={getUpload()}>
         {(getUpload) => (
-          <HeaderSelect upload={getUpload()} onComplete={setMapping} />
+          <HeaderMapping upload={getUpload()} onComplete={setMapping} />
         )}
       </Show>
       <Show when={getNormalRows()}>
