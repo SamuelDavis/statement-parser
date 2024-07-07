@@ -1,6 +1,6 @@
 import UploadFlow from "./UploadFlow";
 import { createEffect, createSignal, Show } from "solid-js";
-import { NormalRow, Statement } from "./types.ts";
+import { hasProperty, NormalRow, Statement } from "./types.ts";
 import { StatementTable } from "./StatementTable.tsx";
 import TagForm from "./TagForm.tsx";
 
@@ -22,10 +22,10 @@ function loadStatements(): Statement[] {
 
 function App() {
   const [getOpen, setOpen] = createSignal(false);
-
   const [getStatements, setStatements] =
     createSignal<Statement[]>(loadStatements());
   const [getRegExp, setRegExp] = createSignal<RegExp | undefined>();
+  const [getMatches, setMatches] = createSignal<Record<string, string[]>>({});
   const getRows = () =>
     getStatements()
       .flatMap((statement) => statement.rows)
@@ -45,13 +45,38 @@ function App() {
     ]);
   }
 
+  function onInput(_: Event, regex: undefined | RegExp) {
+    setRegExp(regex);
+  }
+
+  function onMatch(_: Event, match: string, tag: string) {
+    setMatches((matches) => {
+      return hasProperty(matches, match) && matches[match].includes(tag)
+        ? matches
+        : { ...matches, [match]: [...(matches[match] ?? []), tag] };
+    });
+  }
+
+  function onRemoveTag(match: string, tag: string) {
+    setMatches((matches) => {
+      return hasProperty(matches, match)
+        ? { ...matches, [match]: matches[match].filter((v) => v !== tag) }
+        : matches;
+    });
+  }
+
   return (
     <main>
       <article>
         <header>
           <button onClick={() => setOpen(true)}>Upload</button>
         </header>
-        <TagForm onInput={setRegExp} />
+        <TagForm
+          onInput={onInput}
+          matches={getMatches()}
+          onSubmit={onMatch}
+          onRemoveTag={onRemoveTag}
+        />
         <StatementTable rows={getRows()} regex={getRegExp()} />
       </article>
       <Show when={getOpen()}>

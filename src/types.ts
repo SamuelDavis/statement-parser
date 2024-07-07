@@ -45,3 +45,10 @@ export type Statement = {
   date: Date;
   rows: NormalRow[];
 };
+
+export function hasProperty<Obj extends Record<string, any> | object>(
+  object: Obj,
+  property: keyof Obj | string,
+): property is keyof Obj {
+  return property in object;
+}
