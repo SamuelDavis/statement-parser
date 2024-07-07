@@ -6,7 +6,7 @@ import TagForm from "./TagForm.tsx";
 
 function loadStatements(): Statement[] {
   const localStatements = JSON.parse(
-    localStorage.getItem("statements") ?? "",
+    localStorage.getItem("statements") ?? "[]",
   ) as Statement[];
   if (!Array.isArray(localStatements)) throw new TypeError();
 
