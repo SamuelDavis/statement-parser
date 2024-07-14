@@ -4,6 +4,7 @@ import {
   NormalHeader,
   normalHeaders,
   NormalRow,
+  parseNormalRow,
   Upload,
 } from "../types.ts";
 import FileInput from "./FileInput.tsx";
@@ -21,20 +22,6 @@ const labels: Record<Step, string> = {
   [Step.Mapping]: "Map Statement Columns",
   [Step.Done]: "Confirm",
 };
-
-function formatValue(
-  normal: NormalHeader,
-  value: string,
-): NormalRow[typeof normal] {
-  switch (normal) {
-    case "date":
-      return new Date(value);
-    case "amount":
-      return parseFloat(value);
-    default:
-      return value;
-  }
-}
 
 type Props = ExtendProps<
   "form",
@@ -54,15 +41,13 @@ export default function UploadFlow(props: Props) {
     if (!mapping) return;
 
     return upload.rows
-      .map(function (row) {
+      .map((row) => {
         return normalHeaders.reduce(
-          (acc, normal) => ({
-            ...acc,
-            [normal]: formatValue(normal, row[mapping[normal]]),
-          }),
-          {} as NormalRow,
+          (acc, normal) => ({ ...acc, [normal]: row[mapping[normal]] }),
+          {},
         );
       })
+      .map(parseNormalRow)
       .sort((a, b) => b.date.getTime() - a.date.getTime());
   };
   const getStep = () => {

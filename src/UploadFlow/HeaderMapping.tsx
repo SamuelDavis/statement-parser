@@ -103,11 +103,7 @@ export default function HeaderMapping<Header extends string = string>(
   }
 
   return (
-    <fieldset
-      role="group"
-      {...parent}
-      class={`${styles.HeaderSelect} ${parent}`}
-    >
+    <fieldset role="group" class={styles.HeaderSelect} {...parent}>
       <For each={normalHeaders}>
         {(normal) => (
           <fieldset>

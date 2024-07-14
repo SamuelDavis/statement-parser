@@ -1,31 +1,34 @@
 import UploadFlow from "./UploadFlow";
-import { createEffect, createSignal, Show } from "solid-js";
-import { hasProperty, NormalRow, Statement } from "./types.ts";
+import { createEffect, Show } from "solid-js";
+import {
+  assert,
+  assertIsArray,
+  isArray,
+  isObject,
+  isProperty,
+  NormalRow,
+  parseStatement,
+  Statement,
+} from "./types.ts";
 import { StatementTable } from "./StatementTable.tsx";
 import TagForm from "./TagForm.tsx";
-
-function loadStatements(): Statement[] {
-  const localStatements = JSON.parse(
-    localStorage.getItem("statements") ?? "[]",
-  ) as Statement[];
-  if (!Array.isArray(localStatements)) throw new TypeError();
-
-  return localStatements.map(({ rows, ...statement }) => ({
-    ...statement,
-    rows: rows.map(({ date, description, amount }) => ({
-      date: new Date(date.toString()),
-      description,
-      amount: parseFloat(amount.toString()),
-    })),
-  }));
-}
+import { createSignal } from "./utils.ts";
 
 function App() {
   const [getOpen, setOpen] = createSignal(false);
-  const [getStatements, setStatements] =
-    createSignal<Statement[]>(loadStatements());
-  const [getRegExp, setRegExp] = createSignal<RegExp | undefined>();
-  const [getMatches, setMatches] = createSignal<Record<string, string[]>>({});
+  const [getStatements, setStatements] = createSignal<Statement[]>([], {
+    storageKey: "statements",
+    storageParser: (value) => assert(isArray, value).map(parseStatement),
+  });
+  const [getRegExp, setRegExp] = createSignal<RegExp | undefined>(undefined);
+  const [getMatches, setMatches] = createSignal<Record<string, string[]>>(
+    {},
+    {
+      storageKey: "matches",
+      storageParser: (value) =>
+        Object.values(assert(isObject, value)).every(assertIsArray) && value,
+    },
+  );
   const getRows = () =>
     getStatements()
       .flatMap((statement) => statement.rows)
@@ -50,19 +53,19 @@ function App() {
   }
 
   function onMatch(_: Event, match: string, tag: string) {
-    setMatches((matches) => {
-      return hasProperty(matches, match) && matches[match].includes(tag)
+    setMatches((matches) =>
+      isProperty(matches, match) && matches[match].includes(tag)
         ? matches
-        : { ...matches, [match]: [...(matches[match] ?? []), tag] };
-    });
+        : { ...matches, [match]: [...(matches[match] ?? []), tag] },
+    );
   }
 
   function onRemoveTag(match: string, tag: string) {
-    setMatches((matches) => {
-      return hasProperty(matches, match)
+    setMatches((matches) =>
+      isProperty(matches, match)
         ? { ...matches, [match]: matches[match].filter((v) => v !== tag) }
-        : matches;
-    });
+        : matches,
+    );
   }
 
   return (

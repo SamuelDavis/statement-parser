@@ -65,8 +65,6 @@ export default function TagForm(props: Props) {
     const name = data.get("match")?.toString();
     const tag = data.get("tag")?.toString();
 
-    console.debug({ name, tag });
-
     if (!(tag && name)) return;
 
     local.onSubmit(e, name, tag);
@@ -79,7 +77,7 @@ export default function TagForm(props: Props) {
 
   return (
     <form onSubmit={onSubmit} {...parent}>
-      <fieldset class={styles.TagFieldset}>
+      <fieldset role="group">
         <label>
           <span>Match</span>
           <input

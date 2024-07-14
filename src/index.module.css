@@ -1,11 +1,3 @@
-fieldset {
-  padding: 0.5em;
-}
-
-fieldset:last-child {
-  margin-bottom: 0;
-}
-
 .HeaderSelect {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -13,7 +5,6 @@ fieldset:last-child {
   grid-template-areas:
     "a b c"
     "d d d";
-  gap: 0.5em;
 }
 
 .HeaderSelect > ul {
@@ -22,11 +13,6 @@ fieldset:last-child {
 
 .Match {
   background-color: rgba(255, 255, 0, 0.2);
-}
-
-.TagFieldset {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
 }
 
 .Tags button {
