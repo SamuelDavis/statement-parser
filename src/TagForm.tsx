@@ -1,28 +1,36 @@
-import { ExtendProps, isHtml } from "./types.ts";
+import { ExtendProps, isHtml, Statement } from "./types.ts";
 import { createSignal, For, Show, splitProps } from "solid-js";
 import { debounce } from "@solid-primitives/scheduled";
 import ErrorList from "./ErrorList.tsx";
 import styles from "./index.module.css";
+import { StatementTable } from "./StatementTable.tsx";
 
 type Props = ExtendProps<
   "form",
   {
-    onInput: (e: Event, r: RegExp | undefined) => void;
     onSubmit: (e: Event, name: string, tag: string) => void;
     onRemoveTag: (match: string, tag: string) => void;
     matches: Record<string, string[]>;
+    statements: Statement[];
   }
 >;
 
 export default function TagForm(props: Props) {
   const [local, parent] = splitProps(props, [
-    "onInput",
     "onSubmit",
     "onRemoveTag",
     "matches",
+    "statements",
   ]);
   const [getError, setError] = createSignal<string | undefined>();
   const [getMatch, setMatch] = createSignal("");
+  const [getRegexp, setRegexp] = createSignal<RegExp | undefined>();
+  const getRows = () => {
+    const regex = getRegexp();
+    return local.statements
+      .flatMap((statement) => statement.rows)
+      .filter((row) => regex?.test(row.description) ?? true);
+  };
   const getMatches = () => Object.keys(local.matches);
   const getTags = () =>
     Object.values(local.matches).reduce(
@@ -34,16 +42,16 @@ export default function TagForm(props: Props) {
       [],
     );
   const getMatchingTags = () => local.matches[getMatch()] ?? [];
-  const update = debounce((e: Event, value: string) => {
+  const update = debounce((_: Event, value: string) => {
     try {
       const regex = value.length ? new RegExp(value, "gi") : undefined;
-      local.onInput?.(e, regex);
+      setRegexp(regex);
       setError(undefined);
-      console.debug({ regex });
     } catch (e) {
-      if (e instanceof Error) setError(e.message);
-      else console.error(e);
-      console.error(e);
+      if (e instanceof Error) {
+        setRegexp(undefined);
+        setError(e.message);
+      } else console.error(e);
     }
   });
   let tags: HTMLInputElement | undefined;
@@ -129,6 +137,7 @@ export default function TagForm(props: Props) {
         <For each={getTags()}>{(tag) => <option value={tag} />}</For>
       </datalist>
       <input type="submit" />
+      <StatementTable rows={getRows()} regex={getRegexp()} />
     </form>
   );
 }

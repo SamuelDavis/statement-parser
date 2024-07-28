@@ -1,5 +1,4 @@
-import UploadFlow from "./UploadFlow";
-import { createEffect, Show } from "solid-js";
+import { createEffect } from "solid-js";
 import {
   assert,
   assertIsArray,
@@ -10,17 +9,16 @@ import {
   parseStatement,
   Statement,
 } from "./types.ts";
-import { StatementTable } from "./StatementTable.tsx";
 import TagForm from "./TagForm.tsx";
 import { createSignal } from "./utils.ts";
+import UploadFlow from "./UploadFlow";
+import { Modal } from "./Modal.tsx";
 
 function App() {
-  const [getOpen, setOpen] = createSignal(false);
   const [getStatements, setStatements] = createSignal<Statement[]>([], {
     storageKey: "statements",
     storageParser: (value) => assert(isArray, value).map(parseStatement),
   });
-  const [getRegExp, setRegExp] = createSignal<RegExp | undefined>(undefined);
   const [getMatches, setMatches] = createSignal<Record<string, string[]>>(
     {},
     {
@@ -29,10 +27,6 @@ function App() {
         Object.values(assert(isObject, value)).every(assertIsArray) && value,
     },
   );
-  const getRows = () =>
-    getStatements()
-      .flatMap((statement) => statement.rows)
-      .filter((row) => getRegExp()?.test(row.description) ?? true);
 
   createEffect(() => {
     const statements = getStatements();
@@ -41,15 +35,10 @@ function App() {
   });
 
   function onSubmit(_: Event, name: string, rows: NormalRow[]) {
-    setOpen(false);
     setStatements((statements) => [
       ...statements.filter((statement) => statement.name !== name),
       { name, rows, date: new Date() },
     ]);
-  }
-
-  function onInput(_: Event, regex: undefined | RegExp) {
-    setRegExp(regex);
   }
 
   function onMatch(_: Event, match: string, tag: string) {
@@ -72,35 +61,27 @@ function App() {
     <main>
       <article>
         <header>
-          <button onClick={() => setOpen(true)}>Upload</button>
+          <nav>
+            <ul>
+              <li>
+                <Modal title="Upload a new Bank statement" anchor="Upload">
+                  <UploadFlow onSubmit={onSubmit} />
+                </Modal>
+              </li>
+              <li>
+                <Modal title="Tag Transactions" anchor="Tags">
+                  <TagForm
+                    matches={getMatches()}
+                    onSubmit={onMatch}
+                    onRemoveTag={onRemoveTag}
+                    statements={getStatements()}
+                  />
+                </Modal>
+              </li>
+            </ul>
+          </nav>
         </header>
-        <TagForm
-          onInput={onInput}
-          matches={getMatches()}
-          onSubmit={onMatch}
-          onRemoveTag={onRemoveTag}
-        />
-        <StatementTable rows={getRows()} regex={getRegExp()} />
       </article>
-      <Show when={getOpen()}>
-        <dialog open>
-          <article>
-            <header>
-              <a
-                role="button"
-                href="#"
-                rel="prev"
-                onClick={() => setOpen(false)}
-                aria-label="close"
-              />
-              <p>
-                <strong>Upload a new Bank statement</strong>
-              </p>
-            </header>
-            <UploadFlow onSubmit={onSubmit} />
-          </article>
-        </dialog>
-      </Show>
     </main>
   );
 }
