@@ -1,10 +1,10 @@
 import { JSX } from "solid-js";
 
 export type ExtendProps<
-  Source extends keyof HTMLElementTagNameMap,
+  Source extends keyof JSX.HTMLElementTags,
   Props extends Record<string, any> = {},
-> = Omit<JSX.HTMLAttributes<HTMLElementTagNameMap[Source]>, keyof Props> &
-  Props;
+  Except extends keyof JSX.HTMLElementTags[Source] = never,
+> = Omit<Omit<JSX.HTMLElementTags[Source], keyof Props>, Except> & Props;
 
 export function isHtml<Tag extends keyof HTMLElementTagNameMap>(
   tag: Tag,
@@ -15,36 +15,38 @@ export function isHtml<Tag extends keyof HTMLElementTagNameMap>(
   );
 }
 
-export type Upload<Header extends string = string> = {
+export function isArray(value: any): value is any[] {
+  return Array.isArray(value);
+}
+
+export type Upload = {
   name: string;
-  headers: Header[];
-  rows: Record<Header, string>[];
+  headers: string[];
+  rows: Record<string, string>[];
 };
 
-export type NormalRow = {
-  date: Date;
-  description: string;
-  amount: number;
-};
-export type NormalHeader = keyof NormalRow;
-export const normalHeaders: readonly NormalHeader[] = [
-  "date",
-  "description",
-  "amount",
-] as const;
+export enum NormalHeader {
+  Date = "Date",
+  Description = "Description",
+  Amount = "Amount",
+}
 
-export function includes<List extends readonly any[]>(
+export const normalHeaders = Object.keys(NormalHeader) as NormalHeader[];
+
+export function isDate(value: any): value is Date {
+  return value instanceof Date && !isNaN(value.getTime());
+}
+
+export function isNumber(value: any): value is number {
+  return !isNaN(value);
+}
+
+export function includes<List extends any[]>(
   list: List,
   value: any,
 ): value is List[number] {
   return list.includes(value);
 }
-
-export type Statement = {
-  name: string;
-  date: Date;
-  rows: NormalRow[];
-};
 
 export function isObject(value: any): value is object {
   return value !== null && typeof value === "object";
@@ -64,62 +66,19 @@ export function hasProperty<P extends string>(
   return isObject(value) && isProperty(value, property);
 }
 
-export function parseStatement(value: any): Statement {
-  return (
-    assert(isObject, value) && {
-      name: assert(isString, value.name),
-      date: assert(isDate, new Date(value.date)),
-      rows: assert(isArray, value.rows).map(parseNormalRow),
-    }
-  );
-}
-
-export function parseNormalRow(value: any): NormalRow {
-  if (!normalHeaders.every((p) => isProperty(value, p))) throw new TypeError();
-  const { date: _date, description, amount: _amount } = value;
-  const date = new Date(_date);
-  const amount = parseFloat(_amount);
-  if (isDate(date) && isString(description) && isNumber(amount))
-    return { date, description, amount };
-  throw new TypeError();
-}
-
-export function isNormalRow(value: any): value is NormalRow {
-  return (
-    hasProperty("date", value) &&
-    isDate(value.date) &&
-    hasProperty("description", value) &&
-    isString(value.description) &&
-    hasProperty("amount", value) &&
-    isNumber(value.amount)
-  );
-}
-
-export function isString(value: any): value is string {
-  return typeof value === "string";
-}
-
-export function isNumber(value: any): value is number {
-  return !isNaN(value);
-}
-
-export function isDate(value: any): value is Date {
-  return value instanceof Date && isNumber(value.getTime());
-}
-
-export function isArray(value: any): value is any[] {
-  return Array.isArray(value);
-}
-
-export function assert<Guard extends (value: any) => boolean>(
-  guard: Guard,
+export function hasEveryProperty<P extends string[]>(
+  properties: P,
   value: any,
-): Guard extends (value: any) => value is infer T ? T : never {
-  if (guard(value)) return value;
-  throw new TypeError();
+): value is Record<P[number], any> {
+  return properties.every((property) => hasProperty(property, value));
 }
 
-export function assertIsArray(value: any): any[] {
-  if (Array.isArray(value)) return value;
-  throw new TypeError();
-}
+export type Statement = {
+  name: string;
+  date: Date;
+  rows: {
+    [NormalHeader.Date]: Date;
+    [NormalHeader.Description]: string;
+    [NormalHeader.Amount]: number;
+  }[];
+};

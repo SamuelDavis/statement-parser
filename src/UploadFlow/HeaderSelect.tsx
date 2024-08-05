@@ -1,64 +1,91 @@
-import { ExtendProps, includes, isHtml, Upload } from "../types.ts";
+import ErrorList from "../ErrorList.tsx";
+import {
+  ExtendProps,
+  includes,
+  isDate,
+  isHtml,
+  isNumber,
+  NormalHeader,
+  Upload,
+} from "../types.ts";
 import { createSignal, For, Show, splitProps } from "solid-js";
 
-export default function HeaderSelect<
-  Name extends string,
-  Option extends string,
->(
-  props: ExtendProps<
-    "select",
-    {
-      name: Name;
-      options: Option[];
-      rows: Upload["rows"];
-      onInput: (name: Name, option: Option, e: Event) => boolean;
-    }
-  >,
-) {
-  const [local, parent] = splitProps(props, [
-    "name",
-    "options",
-    "rows",
-    "onInput",
-  ]);
-  const [getIsValid, setIsValid] = createSignal(true);
-  const [getValue, setValue] = createSignal<Option | undefined>();
+type Props = ExtendProps<
+  "select",
+  {
+    upload: Upload;
+    normal: NormalHeader;
+    onInput: (value: undefined | string, normal: NormalHeader) => void;
+  },
+  "value" | "name" | "id" | "aria-invalid" | "aria-describedby" | "required"
+>;
+export default function HeaderSelect(props: Props) {
+  const [local, parent] = splitProps(props, ["upload", "normal", "onInput"]);
   const [getIsFresh, setIsFresh] = createSignal(true);
-  const getIsInvalid = () => {
-    const isInvalid = !getIsValid();
-    return getIsFresh() ? isInvalid || undefined : isInvalid;
+  const [getValue, setValue] = createSignal("");
+  const getIsInvalid = () => !getIsFresh() && Boolean(getError());
+  const getError = () => {
+    if (getIsFresh()) return undefined;
+
+    const value = getValue();
+    if (!includes(local.upload.headers, value))
+      return `"${value}" is not a valid option.`;
+
+    switch (local.normal) {
+      case NormalHeader.Date:
+        for (const [index, row] of Object.entries(local.upload.rows)) {
+          if (!isDate(new Date(row[value])))
+            return `"${row[value]}" on row ${Number(index) + 1} is not a date.`;
+        }
+        return undefined;
+      case NormalHeader.Description:
+        return undefined;
+      case NormalHeader.Amount:
+        for (const [index, row] of Object.entries(local.upload.rows)) {
+          if (!isNumber(row[value]))
+            return `"${row[value]}" on row ${Number(index) + 1} is not a number.`;
+        }
+        return undefined;
+      default:
+        throw new TypeError();
+    }
   };
 
   function onInput(e: Event) {
     const select = e.target;
     if (!isHtml("select", select)) throw new TypeError();
 
-    const { value } = select;
-    if (!includes(local.options, value)) throw new TypeError();
-
-    setValue(() => value);
+    setValue(select.value);
     setIsFresh(false);
-    setIsValid(local.onInput(local.name, value, e));
+
+    local.onInput(getError() ? undefined : select.value, local.normal);
   }
 
   return (
-    <select
-      aria-invalid={getIsInvalid()}
-      onInput={onInput}
-      value={getValue()}
-      required
-      {...parent}
-    >
-      <Show when={getIsFresh()}>
-        <option />
-      </Show>
-      <For each={local.options}>
-        {(value) => (
-          <option value={value} selected={value === getValue()}>
-            {value}
-          </option>
-        )}
-      </For>
-    </select>
+    <fieldset>
+      <label for={local.normal}>The {local.normal} is found in column:</label>
+      <select
+        onInput={onInput}
+        value={getValue()}
+        name={local.normal}
+        id={local.normal}
+        aria-invalid={getIsInvalid() || undefined}
+        aria-describedby={`${local.normal}-errors`}
+        required
+        {...parent}
+      >
+        <Show when={getIsFresh()}>
+          <option value="">...</option>
+        </Show>
+        <For each={local.upload.headers}>
+          {(option) => (
+            <option value={option} selected={option === getValue()}>
+              {option}
+            </option>
+          )}
+        </For>
+      </select>
+      <ErrorList id={`${local.normal}-errors`}>{getError()}</ErrorList>
+    </fieldset>
   );
 }

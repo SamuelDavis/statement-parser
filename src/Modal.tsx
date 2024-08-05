@@ -1,30 +1,42 @@
-import { JSX, ParentProps, Show } from "solid-js";
-import { createSignal } from "./utils.ts";
+import { ExtendProps } from "./types.ts";
+import { createEffect, createSignal, JSX, Show, splitProps } from "solid-js";
 
-export function Modal(
-  props: ParentProps & { title: JSX.Element; anchor: JSX.Element },
-) {
+type Props = ExtendProps<
+  "article",
+  {
+    anchor: JSX.Element;
+    title: JSX.Element;
+    children: (close: () => void) => JSX.Element;
+  }
+>;
+export default function Modal(props: Props) {
+  const [local, parent] = splitProps(props, ["anchor", "title", "children"]);
   const [getOpen, setOpen] = createSignal(false);
+  const open = () => setOpen(true);
+  const close = () => setOpen(false);
+  let ref: undefined | HTMLDialogElement;
+
+  createEffect(() => getOpen() && ref?.focus());
+
+  function onKeyDown(e: KeyboardEvent) {
+    if (e.key === "Escape") close();
+  }
 
   return (
     <>
-      <button onClick={() => setOpen(true)}>{props.anchor}</button>
+      <span role="button" onClick={open}>
+        {local.anchor}
+      </span>
       <Show when={getOpen()}>
-        <dialog open>
-          <article>
+        <dialog ref={ref} onKeyDown={onKeyDown} open>
+          <article {...parent}>
             <header>
-              <a
-                role="button"
-                href="#"
-                rel="prev"
-                onClick={() => setOpen(false)}
-                aria-label="close"
-              />
+              <a role="button" aria-label="Close" rel="prev" onClick={close} />
               <p>
-                <strong>{props.title}</strong>
+                <strong>{local.title}</strong>
               </p>
             </header>
-            {props.children}
+            {local.children(close)}
           </article>
         </dialog>
       </Show>

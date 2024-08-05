@@ -2,6 +2,7 @@ import { ExtendProps } from "./types.ts";
 import { children, For, Show, splitProps } from "solid-js";
 
 type Props = ExtendProps<"ul">;
+
 export default function ErrorList(props: Props) {
   const [local, parent] = splitProps(props, ["children"]);
   const resolved = children(() => local.children);
