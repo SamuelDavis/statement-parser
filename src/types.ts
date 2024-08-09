@@ -5,6 +5,11 @@ export type ExtendProps<
   Props extends Record<string, any> = {},
   Except extends keyof JSX.HTMLElementTags[Source] = never,
 > = Omit<Omit<JSX.HTMLElementTags[Source], keyof Props>, Except> & Props;
+export type ExtendPropsChildless<
+  Source extends keyof JSX.HTMLElementTags,
+  Props extends Record<string, any> = {},
+  Except extends keyof JSX.HTMLElementTags[Source] = never,
+> = ExtendProps<Source, Props, "children" | Except>;
 
 export function isHtml<Tag extends keyof HTMLElementTagNameMap>(
   tag: Tag,

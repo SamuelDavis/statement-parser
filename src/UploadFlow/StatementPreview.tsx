@@ -1,12 +1,12 @@
 import {
-  ExtendProps,
+  ExtendPropsChildless,
   NormalHeader,
   normalHeaders,
   Statement,
 } from "../types.ts";
 import { For, mergeProps, Show, splitProps } from "solid-js";
 
-type Props = ExtendProps<
+type Props = ExtendPropsChildless<
   "table",
   { previewLength?: number; statement: Statement }
 >;

@@ -1,6 +1,6 @@
 import { createSignal, For, Show, splitProps } from "solid-js";
 import {
-  ExtendProps,
+  ExtendPropsChildless,
   hasEveryProperty,
   isDate,
   isHtml,
@@ -14,7 +14,7 @@ import StatementUpload from "./StatementUpload.tsx";
 import HeaderSelect from "./HeaderSelect.tsx";
 import StatementPreview from "./StatementPreview.tsx";
 
-type Props = ExtendProps<
+type Props = ExtendPropsChildless<
   "form",
   {
     onSubmit: (statement: Statement) => void;
@@ -86,19 +86,15 @@ export default function UploadForm(props: Props) {
       <StatementUpload onUpload={setUpload} />
       <Show when={getUpload()}>
         {(getUpload) => (
-          <ul>
-            <For each={normalHeaders}>
-              {(normal) => (
-                <li>
-                  <HeaderSelect
-                    upload={getUpload()}
-                    normal={normal}
-                    onInput={onHeaderSelect}
-                  />
-                </li>
-              )}
-            </For>
-          </ul>
+          <For each={normalHeaders}>
+            {(normal) => (
+              <HeaderSelect
+                upload={getUpload()}
+                normal={normal}
+                onInput={onHeaderSelect}
+              />
+            )}
+          </For>
         )}
       </Show>
       <Show when={getStatement()}>
