@@ -1,17 +1,31 @@
-import { ExtendProps } from "./types.ts";
-import { createEffect, createSignal, JSX, Show, splitProps } from "solid-js";
+import { ExtendProps, isCallable } from "./types.ts";
+import {
+  createEffect,
+  createSignal,
+  JSX,
+  mergeProps,
+  Show,
+  splitProps,
+} from "solid-js";
 
 type Props = ExtendProps<
   "article",
   {
     anchor: JSX.Element;
     title: JSX.Element;
-    children: (close: () => void) => JSX.Element;
+    children: JSX.Element | ((close: () => void) => JSX.Element);
+    open?: false | boolean;
   }
 >;
 export default function Modal(props: Props) {
-  const [local, parent] = splitProps(props, ["anchor", "title", "children"]);
-  const [getOpen, setOpen] = createSignal(false);
+  props = mergeProps({ open: false }, props);
+  const [local, parent] = splitProps(props, [
+    "anchor",
+    "title",
+    "children",
+    "open",
+  ]);
+  const [getOpen, setOpen] = createSignal(local.open);
   const open = () => setOpen(true);
   const close = () => setOpen(false);
   let ref: undefined | HTMLDialogElement;
@@ -36,7 +50,9 @@ export default function Modal(props: Props) {
                 <strong>{local.title}</strong>
               </p>
             </header>
-            {local.children(close)}
+            {isCallable(local.children)
+              ? local.children(close)
+              : local.children}
           </article>
         </dialog>
       </Show>

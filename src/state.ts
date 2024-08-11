@@ -1,5 +1,5 @@
 import { createRoot } from "solid-js";
-import { createSignal } from "./utils.ts";
+import { createSignal, regexToString, stringToRegex } from "./utils.ts";
 import {
   hasProperty,
   isArray,
@@ -9,9 +9,10 @@ import {
   NormalHeader,
   normalHeaders,
   Statement,
+  Tag,
 } from "./types.ts";
 
-const appState = createRoot(() => {
+export const statements = createRoot(() => {
   const [getStatements, setStatements] = createSignal<Statement[]>([], {
     storageKey: "statements",
     storageParser(value) {
@@ -56,6 +57,52 @@ const appState = createRoot(() => {
     return statement;
   }
 
-  return { getStatements, addStatement, statementNameExists };
+  function getStatementRows() {
+    return getStatements().flatMap((statement) => statement.rows);
+  }
+
+  return {
+    getStatements,
+    addStatement,
+    statementNameExists,
+    getStatementRows,
+  };
 });
-export default appState;
+export const tags = createRoot(() => {
+  const [getTags, setTags] = createSignal<Tag[]>([], {
+    storageKey: "tags",
+    storageEncoder(value) {
+      return JSON.stringify(
+        value.map(({ text, regex }) => ({ text, regex: regexToString(regex) })),
+      );
+    },
+    storageParser(value) {
+      if (!isArray(value)) throw new TypeError();
+      return value.map(function (value): Tag {
+        if (!hasProperty("text", value)) throw new TypeError();
+        if (!hasProperty("regex", value)) throw new TypeError();
+        const regex = stringToRegex(value.regex);
+        return { text: value.text, regex };
+      });
+    },
+  });
+
+  function isSameTag(a: Tag, b: Tag): boolean {
+    return (
+      a.text === b.text && regexToString(a.regex) === regexToString(b.regex)
+    );
+  }
+
+  function addTag(tag: Tag): Tag {
+    setTags((tags) => [
+      ...tags.filter((existing) => !isSameTag(existing, tag)),
+      tag,
+    ]);
+    return tag;
+  }
+
+  return {
+    getTags,
+    addTag,
+  };
+});

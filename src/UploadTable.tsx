@@ -1,5 +1,5 @@
 import { For } from "solid-js";
-import appState from "./appState.ts";
+import { statements } from "./state.ts";
 import { ExtendPropsChildless } from "./types.ts";
 
 type Props = ExtendPropsChildless<"table">;
@@ -16,7 +16,7 @@ export function UploadTable(props: Props) {
       </thead>
       <tbody>
         <For
-          each={appState.getStatements()}
+          each={statements.getStatements()}
           fallback={<td colspan={3}>No statements uploaded...</td>}
         >
           {(statement) => (

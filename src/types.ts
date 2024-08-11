@@ -91,3 +91,21 @@ export type Statement = {
 export function isString(value: any): value is string {
   return typeof value === "string";
 }
+
+export type Tag = {
+  text: string;
+  regex: RegExp;
+};
+
+export function isCallable(value: any): value is (...args: any) => any {
+  return (
+    typeof value === "function" ||
+    (hasProperty("constructor", value) && value.constructor === Function) ||
+    hasEveryProperty(["call", "apply"], value)
+  );
+}
+
+export type TextSegment = {
+  value: string;
+  match: boolean;
+};
