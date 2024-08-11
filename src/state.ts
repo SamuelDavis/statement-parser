@@ -1,4 +1,4 @@
-import { createRoot } from "solid-js";
+import { createEffect, createRoot } from "solid-js";
 import { createSignal, regexToString, stringToRegex } from "./utils.ts";
 import {
   hasProperty,
@@ -70,6 +70,7 @@ export const statements = createRoot(() => {
 });
 export const tags = createRoot(() => {
   const [getTags, setTags] = createSignal<Tag[]>([], {
+    equals: false,
     storageKey: "tags",
     storageEncoder(value) {
       return JSON.stringify(
@@ -85,6 +86,9 @@ export const tags = createRoot(() => {
         return { text: value.text, regex };
       });
     },
+  });
+  createEffect(() => {
+    console.debug({ tags: getTags().length });
   });
 
   function isSameTag(a: Tag, b: Tag): boolean {

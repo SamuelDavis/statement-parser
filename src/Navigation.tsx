@@ -3,6 +3,7 @@ import { statements } from "./state.ts";
 import Modal from "./Modal.tsx";
 import UploadForm from "./UploadFlow/UploadForm.tsx";
 import TagForm from "./Tags/TagForm.tsx";
+import TagNext from "./TagNext.tsx";
 
 type Props = ExtendPropsChildless<"nav">;
 
@@ -23,8 +24,13 @@ export function Navigation(props: Props) {
           </Modal>
         </li>
         <li>
-          <Modal anchor="Tags" title="Tags" open>
+          <Modal anchor="Tags" title="Tags">
             <TagForm />
+          </Modal>
+        </li>
+        <li>
+          <Modal anchor="Tag Next" title="Tag Next">
+            <TagNext />
           </Modal>
         </li>
       </ul>
