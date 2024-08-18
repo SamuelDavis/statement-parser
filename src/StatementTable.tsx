@@ -1,7 +1,6 @@
 import { For, splitProps } from "solid-js";
-import { statements } from "../state.ts";
-import { ExtendPropsChildless, Statement } from "../types.ts";
-import { parseRegex } from "../utils.ts";
+import { ExtendPropsChildless, NormalHeader, Statement } from "./types.ts";
+import Amount from "./Amount.tsx";
 
 type Props = ExtendPropsChildless<
   "table",
@@ -13,36 +12,57 @@ type Props = ExtendPropsChildless<
 
 export default function StatementTable(props: Props) {
   const [local, parent] = splitProps(props, ["regex", "rows"]);
+  const getEarliestDate = () =>
+    local.rows.reduce((acc, row) => {
+      return acc.getTime() < row[NormalHeader.Date].getTime()
+        ? acc
+        : row[NormalHeader.Date];
+    }, new Date());
+  const getLatestDate = () =>
+    local.rows.reduce((acc, row) => {
+      return acc.getTime() < row[NormalHeader.Date].getTime()
+        ? row[NormalHeader.Date]
+        : acc;
+    }, new Date());
+  const getSumTotal = () => {
+    return local.rows.reduce((acc, row) => acc + row[NormalHeader.Amount], 0);
+  };
   return (
     <table {...parent}>
       <thead>
         <tr>
-          <th colspan={2} />
-          <th>
-            <output>Count: {statements.getStatementRows().length}</output>
-          </th>
+          <td>Date Range</td>
+          <td>Total Records</td>
+          <td>Sum Total</td>
         </tr>
+      </thead>
+      <tbody>
         <tr>
-          <th>date</th>
-          <th>description</th>
-          <th>amount</th>
+          <td>
+            <span>{getEarliestDate().toLocaleDateString()}</span>
+            <span>-</span>
+            <span>{getLatestDate().toLocaleDateString()}</span>
+          </td>
+          <td>{local.rows.length}</td>
+          <td>
+            <Amount value={getSumTotal()} />
+          </td>
+        </tr>
+      </tbody>
+      <thead>
+        <tr>
+          <th>{NormalHeader.Date}</th>
+          <th>{NormalHeader.Description}</th>
+          <th>{NormalHeader.Amount}</th>
         </tr>
       </thead>
       <tbody>
         <For each={local.rows}>
           {(row) => (
             <tr>
-              <td>{row.Date.toLocaleDateString()}</td>
-              <td>
-                {local.regex
-                  ? parseRegex(local.regex, row.Description).map((chunk) => (
-                      <span style="background-color: rgba(255, 255, 0, 0.2);">
-                        {chunk.value}
-                      </span>
-                    ))
-                  : row.Description}
-              </td>
-              <td>${row.Amount.toFixed(2)}</td>
+              <td>{row[NormalHeader.Date].toLocaleDateString()}</td>
+              <td>{row[NormalHeader.Description]}</td>
+              <td>${row[NormalHeader.Amount].toFixed(2)}</td>
             </tr>
           )}
         </For>

@@ -1,4 +1,4 @@
-import { createEffect, createRoot } from "solid-js";
+import { createRoot } from "solid-js";
 import { createSignal, regexToString, stringToRegex } from "./utils.ts";
 import {
   hasProperty,
@@ -61,11 +61,18 @@ export const statements = createRoot(() => {
     return getStatements().flatMap((statement) => statement.rows);
   }
 
+  function getStatementRowsByTags(tags: Tag[]) {
+    return getStatementRows().filter((row) =>
+      tags.some((tag) => tag.regex.test(row[NormalHeader.Description])),
+    );
+  }
+
   return {
     getStatements,
     addStatement,
     statementNameExists,
     getStatementRows,
+    getStatementRowsByTags,
   };
 });
 export const tags = createRoot(() => {
@@ -87,9 +94,6 @@ export const tags = createRoot(() => {
       });
     },
   });
-  createEffect(() => {
-    console.debug({ tags: getTags().length });
-  });
 
   function isSameTag(a: Tag, b: Tag): boolean {
     return (
@@ -105,8 +109,21 @@ export const tags = createRoot(() => {
     return tag;
   }
 
+  function getTagsByText(text: string) {
+    return tags.getTags().filter((tag) => tag.text === text);
+  }
+
+  function getUniqueTagTexts() {
+    return getTags().reduce(
+      (acc, tag) => (acc.includes(tag.text) ? acc : [...acc, tag.text]),
+      [] as string[],
+    );
+  }
+
   return {
     getTags,
     addTag,
+    getTagsByText,
+    getUniqueTagTexts,
   };
 });
