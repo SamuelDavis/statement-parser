@@ -1,17 +1,18 @@
 import { For, splitProps } from "solid-js";
 import { statements } from "../state.ts";
-import { ExtendPropsChildless } from "../types.ts";
+import { ExtendPropsChildless, Statement } from "../types.ts";
 import { parseRegex } from "../utils.ts";
 
 type Props = ExtendPropsChildless<
   "table",
   {
     regex?: RegExp;
+    rows: Statement["rows"];
   }
 >;
 
 export default function StatementTable(props: Props) {
-  const [local, parent] = splitProps(props, ["regex"]);
+  const [local, parent] = splitProps(props, ["regex", "rows"]);
   return (
     <table {...parent}>
       <thead>
@@ -28,7 +29,7 @@ export default function StatementTable(props: Props) {
         </tr>
       </thead>
       <tbody>
-        <For each={statements.getStatementRows()}>
+        <For each={local.rows}>
           {(row) => (
             <tr>
               <td>{row.Date.toLocaleDateString()}</td>
