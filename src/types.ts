@@ -94,7 +94,7 @@ export function isString(value: any): value is string {
 
 export type Tag = {
   text: string;
-  regex: RegExp;
+  regex: string;
 };
 
 export function isCallable(value: any): value is (...args: any) => any {

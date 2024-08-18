@@ -62,7 +62,9 @@ export default function StatementTable(props: Props) {
             <tr>
               <td>{row[NormalHeader.Date].toLocaleDateString()}</td>
               <td>{row[NormalHeader.Description]}</td>
-              <td>${row[NormalHeader.Amount].toFixed(2)}</td>
+              <td>
+                <Amount value={row[NormalHeader.Amount]} />
+              </td>
             </tr>
           )}
         </For>

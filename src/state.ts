@@ -1,5 +1,5 @@
 import { createRoot } from "solid-js";
-import { createSignal, regexToString, stringToRegex } from "./utils.ts";
+import { createSignal, stringToRegex, uniq } from "./utils.ts";
 import {
   hasProperty,
   isArray,
@@ -49,7 +49,7 @@ export const statements = createRoot(() => {
     return getStatements().some((statement) => statement.name === name);
   }
 
-  function addStatement(statement: Statement) {
+  function addStatement(statement: Statement): Statement {
     setStatements((prev) => [
       ...prev.filter((prev) => prev.name !== statement.name),
       statement,
@@ -57,13 +57,13 @@ export const statements = createRoot(() => {
     return statement;
   }
 
-  function getStatementRows() {
+  function getStatementRows(): Statement["rows"] {
     return getStatements().flatMap((statement) => statement.rows);
   }
 
-  function getStatementRowsByTags(tags: Tag[]) {
+  function getStatementRowsByRegex(regex: RegExp) {
     return getStatementRows().filter((row) =>
-      tags.some((tag) => tag.regex.test(row[NormalHeader.Description])),
+      regex.test(row[NormalHeader.Description]),
     );
   }
 
@@ -72,58 +72,61 @@ export const statements = createRoot(() => {
     addStatement,
     statementNameExists,
     getStatementRows,
-    getStatementRowsByTags,
+    getStatementRowsByRegex,
   };
 });
+
 export const tags = createRoot(() => {
   const [getTags, setTags] = createSignal<Tag[]>([], {
-    equals: false,
     storageKey: "tags",
-    storageEncoder(value) {
-      return JSON.stringify(
-        value.map(({ text, regex }) => ({ text, regex: regexToString(regex) })),
-      );
-    },
-    storageParser(value) {
-      if (!isArray(value)) throw new TypeError();
-      return value.map(function (value): Tag {
-        if (!hasProperty("text", value)) throw new TypeError();
-        if (!hasProperty("regex", value)) throw new TypeError();
-        const regex = stringToRegex(value.regex);
-        return { text: value.text, regex };
-      });
-    },
   });
 
-  function isSameTag(a: Tag, b: Tag): boolean {
-    return (
-      a.text === b.text && regexToString(a.regex) === regexToString(b.regex)
+  const addTag = (tag: Tag) => {
+    return setTags((tags) =>
+      tags.some((e) => e.text === tag.text && e.regex === tag.regex)
+        ? tags
+        : [...tags, tag],
     );
-  }
-
-  function addTag(tag: Tag): Tag {
-    setTags((tags) => [
-      ...tags.filter((existing) => !isSameTag(existing, tag)),
-      tag,
-    ]);
-    return tag;
-  }
-
-  function getTagsByText(text: string) {
-    return tags.getTags().filter((tag) => tag.text === text);
-  }
-
-  function getUniqueTagTexts() {
+  };
+  const getTagsByText = () => {
     return getTags().reduce(
-      (acc, tag) => (acc.includes(tag.text) ? acc : [...acc, tag.text]),
-      [] as string[],
+      (acc, tag) =>
+        acc.set(tag.text, [...(acc.get(tag.text) ?? []), tag.regex]),
+      new Map<string, Tag["regex"][]>(),
     );
-  }
+  };
+  const getCompactedTags = () =>
+    Array.from(getTagsByText().entries()).reduce(
+      (acc, [text, regex]) => [
+        ...acc,
+        {
+          text,
+          regex: uniq(regex).join("|"),
+        },
+      ],
+      [] as Tag[],
+    );
+
+  const getTagsAsRegex = () => {
+    return getCompactedTags().map((tag) => ({
+      ...tag,
+      regex: stringToRegex(tag.regex),
+    }));
+  };
+
+  const getTagsMatch = (text: string) => {
+    return getTagsAsRegex().some((tag) => tag.regex.test(text));
+  };
+
+  const getTexts = () => uniq(getTags().map((tag) => tag.text));
+  const getRegexes = () => uniq(getTags().map((tag) => tag.regex));
 
   return {
-    getTags,
     addTag,
+    getTagsMatch,
+    getTexts,
+    getRegexes,
+    getTagsAsRegex,
     getTagsByText,
-    getUniqueTagTexts,
   };
 });

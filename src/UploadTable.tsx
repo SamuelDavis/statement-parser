@@ -1,6 +1,7 @@
 import { For } from "solid-js";
 import { statements } from "./state.ts";
-import { ExtendPropsChildless } from "./types.ts";
+import { ExtendPropsChildless, NormalHeader } from "./types.ts";
+import Amount from "./Amount.tsx";
 
 type Props = ExtendPropsChildless<"table">;
 
@@ -12,6 +13,7 @@ export function UploadTable(props: Props) {
           <th>Name</th>
           <th>Date</th>
           <th>Rows</th>
+          <th>Total</th>
         </tr>
       </thead>
       <tbody>
@@ -24,6 +26,14 @@ export function UploadTable(props: Props) {
               <td>{statement.name}</td>
               <td>{statement.date.toLocaleDateString()}</td>
               <td>{statement.rows.length.toLocaleString()}</td>
+              <td>
+                <Amount
+                  value={statement.rows.reduce(
+                    (acc, row) => acc + row[NormalHeader.Amount],
+                    0,
+                  )}
+                />
+              </td>
             </tr>
           )}
         </For>
