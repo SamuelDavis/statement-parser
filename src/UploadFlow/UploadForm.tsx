@@ -14,6 +14,18 @@ import StatementUpload from "./StatementUpload.tsx";
 import HeaderSelect from "./HeaderSelect.tsx";
 import StatementPreview from "./StatementPreview.tsx";
 
+enum Step {
+  Upload,
+  Headers,
+  Confirm,
+}
+
+const stepLabels: Record<Step, string> = {
+  [Step.Upload]: "Upload a statement.",
+  [Step.Headers]: "Identify headers.",
+  [Step.Confirm]: "Confirm.",
+};
+
 type Props = ExtendPropsChildless<
   "form",
   {
@@ -64,6 +76,12 @@ export default function UploadForm(props: Props) {
     };
   };
 
+  const getStep = () => {
+    if (getStatement()) return Step.Confirm;
+    if (getUpload()) return Step.Headers;
+    return Step.Upload;
+  };
+
   function onHeaderSelect(value: undefined | string, normal: NormalHeader) {
     setHeaderMapping(({ [normal]: _, ...rest }) =>
       value === undefined ? rest : { ...rest, [normal]: value },
@@ -83,6 +101,15 @@ export default function UploadForm(props: Props) {
 
   return (
     <form onSubmit={onSubmit} {...parent}>
+      <header>
+        <progress
+          value={getStep() + 0.1}
+          max={Math.max(...Object.values(Step).filter(isNumber))}
+        />
+        <h3>{stepLabels[getStep()]}</h3>
+      </header>
+      <hr />
+
       <StatementUpload onUpload={setUpload} />
       <Show when={getUpload()}>
         {(getUpload) => (
