@@ -25,13 +25,13 @@ const tagsState = createRoot(() => {
   const getLabels = () => uniq(tagsState.getTags().map((tag) => tag.label));
   const getTexts = () =>
     uniq(tagsState.getTags().flatMap((tag) => tag.text.split("|")));
-  const getTagByLabel = (label: Tag["label"]): Tag => ({
-    label,
-    text: getTags()
+  const getTagByLabel = (label: Tag["label"]): undefined | Tag => {
+    const text = getTags()
       .filter((tag) => tag.label === label)
       .map((tag) => `(${tag.text})`)
-      .join("|"),
-  });
+      .join("|");
+    return text ? { label, text } : undefined;
+  };
 
   return { getTags, addTag, getLabels, getTexts, getTagByLabel };
 });
