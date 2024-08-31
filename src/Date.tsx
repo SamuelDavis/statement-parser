@@ -1,8 +1,7 @@
-import { ExtendPropsChildless } from "./types.ts";
+import { ExtendProps } from "./types.ts";
 import { splitProps } from "solid-js";
 
-type Props = ExtendPropsChildless<"span", { value: Date }>;
-
+type Props = ExtendProps<"span", { value: Date }, "children">;
 export default function Date(props: Props) {
   const [local, parent] = splitProps(props, ["value"]);
   return <span {...parent}>{local.value.toLocaleDateString()}</span>;

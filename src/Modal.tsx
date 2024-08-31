@@ -1,68 +1,45 @@
-import { ExtendPropsChildless } from "./types.ts";
+import { ExtendProps } from "./types.ts";
 import {
-  createEffect,
-  createSignal,
+  Component,
   JSX,
-  mergeProps,
+  onCleanup,
+  onMount,
   Show,
+  Signal,
   splitProps,
-  ValidComponent,
 } from "solid-js";
-import { Dynamic } from "solid-js/web";
+import { renderElementOrComponent } from "./utilities.tsx";
 
-type Props = ExtendPropsChildless<
-  "article",
+type Props = ExtendProps<
+  "dialog",
   {
-    anchor: JSX.Element;
-    title: JSX.Element;
-    open?: false | boolean;
-    component?: ValidComponent;
-    callback?: (close: () => void) => JSX.Element;
-  }
+    isOpen: Signal<boolean>;
+    header?: Component | JSX.Element;
+    body?: Component | JSX.Element;
+  },
+  "children"
 >;
 export default function Modal(props: Props) {
-  props = mergeProps({ open: false }, props);
-  const [local, parent] = splitProps(props, [
-    "anchor",
-    "title",
-    "open",
-    "component",
-    "callback",
-  ]);
-  const [getOpen, setOpen] = createSignal(local.open);
-  const open = () => setOpen(true);
-  const close = () => setOpen(false);
-  const getChildren = () => {
-    if (local.callback) return local.callback(close);
-    if (local.component) return <Dynamic component={local.component} />;
-    throw new TypeError();
-  };
-  let ref: undefined | HTMLDialogElement;
+  const [local, parent] = splitProps(props, ["isOpen", "header", "body"]);
 
-  createEffect(() => getOpen() && ref?.focus());
+  const [getIsOpen, setIsOpen] = local.isOpen;
+  const close = () => setIsOpen(false);
+  const onKeyDown = (e: KeyboardEvent) => e.key === "Escape" && close();
 
-  function onKeyDown(e: KeyboardEvent) {
-    if (e.key === "Escape") close();
-  }
+  onMount(() => window.addEventListener("keydown", onKeyDown));
+  onCleanup(() => window.removeEventListener("keydown", onKeyDown));
 
   return (
-    <>
-      <span role="button" onClick={open}>
-        {local.anchor}
-      </span>
-      <Show when={getOpen()}>
-        <dialog ref={ref} onKeyDown={onKeyDown} open>
-          <article {...parent}>
-            <header>
-              <a role="button" aria-label="Close" rel="prev" onClick={close} />
-              <p>
-                <strong>{local.title}</strong>
-              </p>
-            </header>
-            {getChildren()}
-          </article>
-        </dialog>
-      </Show>
-    </>
+    <Show when={getIsOpen()}>
+      <dialog open {...parent}>
+        <article>
+          <header>
+            <a role="button" aria-label="Close" rel="prev" onClick={close} />
+            {renderElementOrComponent(local.header)}
+          </header>
+          {renderElementOrComponent(local.body)}
+        </article>
+      </dialog>
+    </Show>
   );
 }

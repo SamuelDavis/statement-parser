@@ -8,15 +8,19 @@ type Props = ExtendProps<
 >;
 export default function Amount(props: Props) {
   const [local, parent] = splitProps(props, ["value", "style"]);
-  const getColor = (): undefined | JSX.CSSProperties["color"] => {
-    if (local.value > 0) return "lightgreen";
-    if (local.value < 0) return "pink";
-    return undefined;
-  };
+  const getStyle = (): JSX.CSSProperties => ({
+    ...(local.style ?? {}),
+    color:
+      local.style?.color ?? local.value < 0
+        ? "pink"
+        : local.value > 0
+          ? "lightgreen"
+          : undefined,
+  });
 
   return (
-    <span {...parent} style={{ ...local.style, color: getColor() }}>
-      ${local.value.toFixed(2)}
+    <span style={getStyle()} {...parent}>
+      {local.value.toFixed(2)}
     </span>
   );
 }

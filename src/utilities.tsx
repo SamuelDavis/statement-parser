@@ -1,23 +1,32 @@
 import {
+  Component,
   createEffect,
   createSignal as createSolidJsSignal,
+  JSX,
   Signal,
   SignalOptions,
 } from "solid-js";
-import { isProperty, TextSegment } from "./types.ts";
+import { isFunction, isProperty, TextSegment } from "./types.ts";
+import { Dynamic } from "solid-js/web";
+
+export function renderElementOrComponent(
+  arg: JSX.Element | Component,
+): JSX.Element {
+  return isFunction(arg) ? <Dynamic component={arg} /> : arg;
+}
 
 export function createSignal<T>(
   value: T,
   options?: SignalOptions<T> & {
     storageKey?: string;
-    storageParser?: (value: any) => T;
     storageEncoder?: (value: T) => string;
+    storageParser?: (value: any) => T;
   },
 ): Signal<T> {
   const {
     storageKey,
-    storageParser = (v: any) => v,
     storageEncoder = JSON.stringify,
+    storageParser = (v: any) => v,
     ...parentOptions
   } = options ?? {};
 
@@ -44,19 +53,10 @@ export function createSignal<T>(
   return signal;
 }
 
-export function regexToString(regex: RegExp): string {
-  return String(regex).replace(/^\/|\/\w+$/g, "");
-}
-
-export function stringToRegex(string: string): RegExp {
-  return new RegExp(string, "gi");
-}
-
-export function uniq<Value extends string>(list: Value[]): Value[] {
-  return list.filter((v, i, a) => a.indexOf(v) === i);
-}
-
-export function parseRegex(regex: RegExp, text: string): TextSegment[] {
+export function parseTextIntoSegments(
+  regex: RegExp,
+  text: string,
+): TextSegment[] {
   let position = 0;
   let segments: TextSegment[] = [];
   for (const match of text.matchAll(regex)) {
@@ -71,4 +71,8 @@ export function parseRegex(regex: RegExp, text: string): TextSegment[] {
     segments.push({ value: text.slice(position), match: false });
 
   return segments;
+}
+
+export function uniq<Value extends string>(list: Value[]): Value[] {
+  return list.filter((v, i, a) => a.indexOf(v) === i);
 }

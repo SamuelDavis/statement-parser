@@ -1,34 +1,16 @@
-import { ExtendPropsChildless, Statement } from "./types.ts";
-import { statements } from "./state.ts";
-import Modal from "./Modal.tsx";
-import UploadForm from "./UploadFlow/UploadForm.tsx";
-import TagNext from "./TagNext.tsx";
+import { ExtendProps, isObject } from "./types.ts";
+import { children, For, splitProps } from "solid-js";
 
-type Props = ExtendPropsChildless<"nav">;
-
-export function Navigation(props: Props) {
-  function onUpload(close: () => void, statement: Statement) {
-    if (statements.statementNameExists(statement.name))
-      if (!confirm(`Overwrite existing statement "${statement.name}"?`)) return;
-    statements.addStatement(statement);
-    close();
-  }
+type Props = ExtendProps<"nav">;
+export default function Navigation(props: Props) {
+  const [local, parent] = splitProps(props, ["children"]);
+  const resolved = children(() => local.children);
+  const getChildren = () => resolved.toArray().filter(isObject);
 
   return (
-    <nav {...props}>
+    <nav {...parent}>
       <ul>
-        <li>
-          <Modal
-            anchor="Upload"
-            title="Upload"
-            callback={(close) => (
-              <UploadForm onSubmit={onUpload.bind(null, close)} />
-            )}
-          />
-        </li>
-        <li>
-          <Modal anchor="Tag Next" title="Tag Next" component={TagNext} />
-        </li>
+        <For each={getChildren()}>{(child) => <li>{child}</li>}</For>
       </ul>
     </nav>
   );
