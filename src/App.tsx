@@ -8,6 +8,7 @@ import TagSummaryTable from "./TagSummaryTable.tsx";
 import SpendingSummaryTable from "./SpendingSummaryTable.tsx";
 import tagsState from "./state/tagsState.ts";
 import { Show } from "solid-js";
+import TagDetails from "./TagDetails.tsx";
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
       <hr />
       <article>
         <StatementSummaryTable />
+        <TagDetails />
         <Show when={tagsState.getTagByLabel("doctor")}>
           {(getTag) => <SpendingSummaryTable tag={getTag()} />}
         </Show>
