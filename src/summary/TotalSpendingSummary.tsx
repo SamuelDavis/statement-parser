@@ -1,6 +1,6 @@
 import statementsState from "../state/statementsState.ts";
 import { eachWeekOfInterval, isAfter, isBefore, isSameDay } from "date-fns";
-import { ChartConfiguration } from "chart.js-auto";
+import { ChartConfiguration } from "chart.js/auto";
 import tagsState from "../state/tagsState.ts";
 import HtmlChart from "../html/HtmlChart.tsx";
 import { ExtendProps } from "../types.ts";
