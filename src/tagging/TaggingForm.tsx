@@ -5,12 +5,12 @@ import {
   TextSegment,
   Transaction,
 } from "../types.ts";
-import { createSignal, For, Show, splitProps } from "solid-js";
+import { createMemo, createSignal, For, Show, splitProps } from "solid-js";
 import { debounce } from "@solid-primitives/scheduled";
 import HtmlErrorList from "../html/HtmlErrorList.tsx";
 import { parseTextIntoSegments } from "../utilities.tsx";
 import tagsState from "../state/tagsState.ts";
-import { TransactionSummary } from "../summary/TransactionSummary.tsx";
+import TransactionSummary from "../summary/TransactionSummary.tsx";
 import HtmlTextSegment from "../html/HtmlTextSegment.tsx";
 import TaggingMatchingTransactionsPreview from "./TaggingMatchingTransactionsPreview.tsx";
 
@@ -24,17 +24,24 @@ export default function TaggingForm(props: Props) {
   const [getError, setError] = createSignal<undefined | string>();
   const [getRegexp, setRegexp] = createSignal<undefined | RegExp>();
   const getIsInvalid = () => Boolean(getError());
-  const getUntaggedTransactions = () =>
-    local.transactions.filter(
-      (transaction) => !tagsState.isTagged(transaction),
-    );
+  const getUntaggedTransactions = createMemo(() => {
+    let transactions = local.transactions;
+    // why doesn't the first filter work?
+    for (let i = 0; i < 2; i++)
+      transactions = transactions.filter(
+        (transaction) => !tagsState.isTagged(transaction),
+      );
+    return transactions;
+  });
   const getTotalTransactions = () => local.transactions.length;
   const getTotalUntaggedTransactions = () => getUntaggedTransactions().length;
   const getTotalRemainingTransactions = () =>
     getTotalTransactions() - getTotalUntaggedTransactions();
-  const getSegmentedTransaction = (): SegmentedTransaction => {
+  const getSegmentedTransaction = (): undefined | SegmentedTransaction => {
     const regexp = getRegexp();
-    const [transaction] = getUntaggedTransactions();
+    const untaggedTransactions = getUntaggedTransactions();
+    const transaction = untaggedTransactions[0];
+    if (!transaction) return undefined;
     const segments: TextSegment[] = regexp
       ? parseTextIntoSegments(regexp, transaction.description)
       : [{ value: transaction.description, match: false }];
@@ -88,11 +95,18 @@ export default function TaggingForm(props: Props) {
           max={getTotalTransactions()}
           value={getTotalRemainingTransactions()}
         />
-        <TransactionSummary transaction={getSegmentedTransaction()}>
-          <For each={getSegmentedTransaction().segments}>
-            {(segment) => <HtmlTextSegment value={segment} />}
-          </For>
-        </TransactionSummary>
+        <Show
+          when={getSegmentedTransaction()}
+          fallback={<p>No more untagged transactions.</p>}
+        >
+          {(getSegmentedTransaction) => (
+            <TransactionSummary transaction={getSegmentedTransaction()}>
+              <For each={getSegmentedTransaction().segments}>
+                {(segment) => <HtmlTextSegment value={segment} />}
+              </For>
+            </TransactionSummary>
+          )}
+        </Show>
       </header>
       <fieldset>
         <label for="label">Label</label>

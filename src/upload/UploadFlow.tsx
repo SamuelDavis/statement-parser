@@ -46,6 +46,7 @@ export default function UploadFlow(props: Props) {
         <Show when={uploadState.getStatement()}>
           {(getStatement) => (
             <UploadTransactionPreview
+              open
               transactions={getStatement().transactions.slice(0, 1)}
             />
           )}

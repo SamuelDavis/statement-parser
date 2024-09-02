@@ -88,9 +88,13 @@ const statementsState = createRoot(() => {
     return sortTransactions(transactions);
   });
   const getUntaggedTransactions = createMemo(() => {
-    return getTransactions().filter(
-      (transaction) => !tagsState.isTagged(transaction),
-    );
+    let transactions = getTransactions();
+    // why doesn't the first filter work?
+    for (let i = 0; i < 2; i++)
+      transactions = transactions.filter(
+        (transaction) => !tagsState.isTagged(transaction),
+      );
+    return transactions;
   });
 
   const getUntaggedTransactionCount = () => getUntaggedTransactions().length;

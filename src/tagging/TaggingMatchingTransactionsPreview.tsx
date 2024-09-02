@@ -2,7 +2,7 @@ import { ExtendProps, SegmentedTransaction } from "../types.ts";
 import { For, splitProps } from "solid-js";
 import statementsState from "../state/statementsState.ts";
 import { parseTextIntoSegments } from "../utilities.tsx";
-import { TransactionSummary } from "../summary/TransactionSummary.tsx";
+import TransactionSummary from "../summary/TransactionSummary.tsx";
 import HtmlTextSegment from "../html/HtmlTextSegment.tsx";
 
 type Props = ExtendProps<"details", { regexp: RegExp }>;

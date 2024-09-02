@@ -100,7 +100,20 @@ export function isFunction<T extends (...props: any[]) => any>(
   return value instanceof Function;
 }
 
+export function isValue<T extends object>(
+  e: T,
+  value: any,
+): value is T[keyof T] {
+  return Object.values(e).includes(value);
+}
+
 export type Tag = { label: string; text: string };
 export type SegmentedTransaction = Transaction & {
   segments: TextSegment[];
 };
+
+export enum GroupBy {
+  Day = "day",
+  Week = "week",
+  Month = "month",
+}

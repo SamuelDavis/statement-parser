@@ -4,8 +4,10 @@ import statementsState from "./state/statementsState.ts";
 import TaggingModal from "./tagging/TaggingModal.tsx";
 import { For } from "solid-js";
 import UploadModal from "./upload/UploadModal.tsx";
-import { StatementSummary } from "./summary/StatementSummary.tsx";
+import StatementSummary from "./summary/StatementSummary.tsx";
 import HtmlFlexGroup from "./html/HtmlFlexGroup.tsx";
+import TagSummary from "./summary/TagSummary.tsx";
+import TotalSpendingSummary from "./summary/TotalSpendingSummary.tsx";
 
 export default function App() {
   return (
@@ -32,6 +34,8 @@ export default function App() {
           </HtmlFlexGroup>
         </section>
       </article>
+      <TotalSpendingSummary />
+      <TagSummary />
     </main>
   );
 }

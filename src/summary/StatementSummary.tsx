@@ -4,7 +4,7 @@ import {
   differenceInCalendarDays,
   differenceInCalendarMonths,
   differenceInCalendarWeeks,
-} from "date-fns/fp";
+} from "date-fns";
 import HtmlLabel from "../html/HtmlLabel.tsx";
 import HtmlDate from "../html/HtmlDate.tsx";
 import HtmlAmount from "../html/HtmlAmount.tsx";
@@ -12,7 +12,7 @@ import HtmlFlexGroup from "../html/HtmlFlexGroup.tsx";
 
 type Props = ExtendProps<"article", { statement: Statement }>;
 
-export function StatementSummary(props: Props) {
+export default function StatementSummary(props: Props) {
   const [local, parent] = splitProps(props, ["statement"]);
   const getMinDate = () => local.statement.transactions[0].date;
   const getMaxDate = () => local.statement.transactions.slice(-1)[0].date;

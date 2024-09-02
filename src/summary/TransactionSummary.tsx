@@ -6,7 +6,7 @@ import HtmlLabel from "../html/HtmlLabel.tsx";
 
 type Props = ExtendProps<"aside", { transaction: Transaction }>;
 
-export function TransactionSummary(props: Props) {
+export default function TransactionSummary(props: Props) {
   const [local, parent] = splitProps(props, ["transaction", "children"]);
   return (
     <aside {...parent}>

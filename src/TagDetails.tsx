@@ -1,5 +1,12 @@
 import { For, Show, splitProps } from "solid-js";
-import { ExtendProps, includes, isHtml, Tag, Transaction } from "./types.ts";
+import {
+  ExtendProps,
+  GroupBy,
+  isHtml,
+  isValue,
+  Tag,
+  Transaction,
+} from "./types.ts";
 import tagsState from "./state/tagsState.ts";
 import statementsState from "./state/statementsState.ts";
 import HtmlDate from "./html/HtmlDate.tsx";
@@ -43,12 +50,6 @@ export default function TagDetails() {
 }
 
 type Props = ExtendProps<"article", { tag: Tag }>;
-
-enum GroupBy {
-  Day = "day",
-  Week = "week",
-  Month = "month",
-}
 
 function setDateToFirst(date: Date): Date {
   date = new Date(date);
@@ -163,10 +164,11 @@ function TagArticle(props: Props) {
         <select
           name="group_by"
           id="group_by"
-          onInput={(e) =>
-            includes(getGroupByOptions(), e.target.value) &&
-            setGroupBy(e.target.value)
-          }
+          onInput={(e) => {
+            const value = e.target.value;
+            if (!isValue(GroupBy, value)) throw new TypeError();
+            setGroupBy(value);
+          }}
         >
           <For each={getGroupByOptions()}>
             {(option) => (

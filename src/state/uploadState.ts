@@ -1,4 +1,4 @@
-import { createComputed, createEffect, createMemo, createRoot } from "solid-js";
+import { createComputed, createMemo, createRoot } from "solid-js";
 import { createSignal } from "../utilities.tsx";
 import {
   hasProperty,
@@ -16,7 +16,7 @@ const uploadState = createRoot(() => {
   const [getHeaderMapping, setHeaderMapping] = createSignal<
     Partial<Record<NormalHeader, string>>
   >({});
-  createEffect(() => {});
+  const reset = () => setUpload(undefined);
   const getHeaders = () => getUpload()?.headers;
   const getFields = (header: string) =>
     getUpload()?.rows.map((row) => row[header]);
@@ -87,6 +87,7 @@ const uploadState = createRoot(() => {
     getStep,
     getMaxStep,
     getStepLabel,
+    reset,
   };
 });
 

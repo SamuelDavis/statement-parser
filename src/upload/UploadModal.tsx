@@ -7,7 +7,7 @@ import UploadFlow from "./UploadFlow.tsx";
 
 type Props = { isOpen: Signal<boolean> };
 export default function UploadModal(props: Props) {
-  const [_, setIsOpen] = props.isOpen;
+  const [getIsOpen, setIsOpen] = props.isOpen;
 
   function onSubmit(statement: Statement) {
     if (
@@ -16,6 +16,7 @@ export default function UploadModal(props: Props) {
     )
       return;
     statementsState.addStatement(statement);
+    uploadState.reset();
     setIsOpen(false);
   }
 

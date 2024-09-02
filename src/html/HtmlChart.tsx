@@ -1,8 +1,18 @@
 import { ExtendProps } from "../types.ts";
-import { splitProps } from "solid-js";
+import { createEffect, onCleanup, splitProps } from "solid-js";
+import { Chart, ChartConfiguration } from "chart.js/auto";
 
-type Props = ExtendProps<"canvas">;
-export default function Chart(props: Props) {
-  const [, parent] = splitProps(props, []);
-  return <canvas {...parent} />;
+type Props = ExtendProps<"canvas", { config: ChartConfiguration }>;
+export default function HtmlChart(props: Props) {
+  const [local, parent] = splitProps(props, ["config"]);
+  let ref: undefined | HTMLCanvasElement;
+  let chart: undefined | Chart;
+
+  createEffect(() => {
+    chart?.destroy();
+    chart = ref ? new Chart(ref, local.config) : undefined;
+  });
+  onCleanup(() => chart?.destroy());
+
+  return <canvas ref={ref} {...parent} />;
 }
