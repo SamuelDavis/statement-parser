@@ -1,14 +1,11 @@
 import HtmlNavigation from "./html/HtmlNavigation.tsx";
-import StatementSummaryTable from "./StatementSummaryTable.tsx";
 import HtmlModalAnchor from "./html/HtmlModalAnchor.tsx";
 import statementsState from "./state/statementsState.ts";
-import TaggingModal from "./TaggingModal.tsx";
-import TagSummaryTable from "./TagSummaryTable.tsx";
-import SpendingSummaryTable from "./SpendingSummaryTable.tsx";
-import tagsState from "./state/tagsState.ts";
-import { Show } from "solid-js";
-import TagDetails from "./TagDetails.tsx";
+import TaggingModal from "./tagging/TaggingModal.tsx";
+import { For } from "solid-js";
 import UploadModal from "./upload/UploadModal.tsx";
+import { StatementSummary } from "./summary/StatementSummary.tsx";
+import HtmlFlexGroup from "./html/HtmlFlexGroup.tsx";
 
 export default function App() {
   return (
@@ -26,12 +23,14 @@ export default function App() {
       </header>
       <hr />
       <article>
-        <StatementSummaryTable />
-        <TagDetails />
-        <Show when={tagsState.getTagByLabel("doctor")}>
-          {(getTag) => <SpendingSummaryTable tag={getTag()} />}
-        </Show>
-        <TagSummaryTable />
+        <section>
+          <h1>Statements</h1>
+          <HtmlFlexGroup>
+            <For each={statementsState.getStatements()}>
+              {(statement) => <StatementSummary statement={statement} />}
+            </For>
+          </HtmlFlexGroup>
+        </section>
       </article>
     </main>
   );

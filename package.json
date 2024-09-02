@@ -12,6 +12,7 @@
     "@picocss/pico": "^2.0.6",
     "@solid-primitives/scheduled": "^1.4.3",
     "chart.js": "^4.4.4",
+    "date-fns": "^3.6.0",
     "papaparse": "^5.4.1",
     "solid-js": "^1.8.15"
   },

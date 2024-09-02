@@ -1,6 +1,6 @@
 import { createMemo, createRoot } from "solid-js";
 import { createSignal, uniq } from "../utilities.tsx";
-import { hasProperties, isArray, Tag } from "../types.ts";
+import { hasProperties, isArray, Tag, Transaction } from "../types.ts";
 
 const tagsState = createRoot(() => {
   const [getTags, setTags] = createSignal<Tag[]>([], {
@@ -26,15 +26,23 @@ const tagsState = createRoot(() => {
   const getTexts = createMemo(() =>
     uniq(getTags().flatMap((tag) => tag.text.split("|"))),
   );
-  const getTagByLabel = (label: Tag["label"]): undefined | Tag => {
+  const getRegexps = createMemo(() =>
+    getTexts().map((text) => new RegExp(text, "gi")),
+  );
+
+  function getTagByLabel(label: Tag["label"]): undefined | Tag {
     const text = getTags()
       .filter((tag) => tag.label === label)
       .map((tag) => `(${tag.text})`)
       .join("|");
     return text ? { label, text } : undefined;
-  };
+  }
 
-  return { getTags, addTag, getLabels, getTexts, getTagByLabel };
+  function isTagged(transaction: Transaction): boolean {
+    return getRegexps().some((regexp) => regexp.test(transaction.description));
+  }
+
+  return { getTags, addTag, getLabels, getTexts, getTagByLabel, isTagged };
 });
 
 export default tagsState;

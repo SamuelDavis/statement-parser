@@ -101,3 +101,6 @@ export function isFunction<T extends (...props: any[]) => any>(
 }
 
 export type Tag = { label: string; text: string };
+export type SegmentedTransaction = Transaction & {
+  segments: TextSegment[];
+};

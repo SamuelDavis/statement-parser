@@ -20,7 +20,7 @@ export default function HtmlAmount(props: Props) {
 
   return (
     <span style={getStyle()} {...parent}>
-      {local.value.toFixed(2)}
+      ${local.value.toFixed(2)}
     </span>
   );
 }

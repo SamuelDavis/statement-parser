@@ -9,11 +9,9 @@ export default function LineChart(props: Props) {
   let ref: undefined | HTMLCanvasElement;
 
   onMount(() => {
-    console.debug("mount");
     isHtml("canvas", ref) && setChart(new Chart(ref, local.config));
   });
   onCleanup(() => {
-    console.debug("cleanup");
     return getChart()?.destroy();
   });
 

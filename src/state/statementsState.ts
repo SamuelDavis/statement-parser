@@ -12,9 +12,21 @@ import {
 } from "../types.ts";
 import tagsState from "./tagsState.ts";
 
+function sortTransactions(transactions: Transaction[]): Transaction[] {
+  return transactions.sort((a, b) => a.date.getTime() - b.date.getTime());
+}
+
 const statementsState = createRoot(() => {
   const [getStatements, setStatements] = createSignal<Statement[]>([], {
     storageKey: "statements",
+    storageEncoder(value) {
+      return JSON.stringify(
+        value.map((statement) => ({
+          ...statement,
+          transactions: sortTransactions(statement.transactions),
+        })),
+      );
+    },
     storageParser(value) {
       if (!isArray(value)) throw new TypeError();
       return value.map((value): Statement => {
@@ -34,7 +46,11 @@ const statementsState = createRoot(() => {
           if (!isNumber(amount)) throw new TypeError();
           return { date, description, amount };
         });
-        return { name: value.name, date, transactions };
+        return {
+          name: value.name,
+          date,
+          transactions: sortTransactions(transactions),
+        };
       });
     },
   });
@@ -65,18 +81,15 @@ const statementsState = createRoot(() => {
         0,
       ),
     }));
-  const getTransactions = createMemo(() =>
-    getStatements()
-      .flatMap((statement) => statement.transactions)
-      .sort((a, b) => a.date.getTime() - b.date.getTime()),
-  );
+  const getTransactions = createMemo(() => {
+    const transactions = getStatements().flatMap(
+      (statement) => statement.transactions,
+    );
+    return sortTransactions(transactions);
+  });
   const getUntaggedTransactions = createMemo(() => {
-    const texts = tagsState.getTexts();
     return getTransactions().filter(
-      (transaction) =>
-        !texts.some((text) =>
-          new RegExp(text, "gi").test(transaction.description),
-        ),
+      (transaction) => !tagsState.isTagged(transaction),
     );
   });
 
