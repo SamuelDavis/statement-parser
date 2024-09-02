@@ -1,9 +1,9 @@
-import { Statement } from "./types.ts";
-import Modal from "./Modal.tsx";
-import UploadFlow from "./UploadFlow.tsx";
 import { Signal } from "solid-js";
-import uploadState from "./state/uploadState.ts";
-import statementsState from "./state/statementsState.ts";
+import { Statement } from "../types.ts";
+import statementsState from "../state/statementsState.ts";
+import HtmlModal from "../html/HtmlModal.tsx";
+import uploadState from "../state/uploadState.ts";
+import UploadFlow from "./UploadFlow.tsx";
 
 type Props = { isOpen: Signal<boolean> };
 export default function UploadModal(props: Props) {
@@ -20,7 +20,7 @@ export default function UploadModal(props: Props) {
   }
 
   return (
-    <Modal
+    <HtmlModal
       isOpen={props.isOpen}
       header={`Step ${uploadState.getStep() + 1} / ${uploadState.getMaxStep() + 1}: ${uploadState.getStepLabel()}`}
       body={<UploadFlow onSubmit={onSubmit} />}

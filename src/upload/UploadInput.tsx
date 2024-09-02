@@ -1,9 +1,9 @@
 import { createSignal } from "solid-js";
-import { isArray, isHtml } from "./types.ts";
+import { isArray, isHtml } from "../types.ts";
 import { parse } from "papaparse";
-import ErrorList from "./ErrorList.tsx";
+import HtmlErrorList from "../html/HtmlErrorList.tsx";
 
-import uploadState from "./state/uploadState.ts";
+import uploadState from "../state/uploadState.ts";
 
 export default function UploadInput() {
   const [getErrors, setErrors] = createSignal<string[]>([]);
@@ -52,7 +52,7 @@ export default function UploadInput() {
           required
         />
       </label>
-      <ErrorList id="upload-errors">{getErrors()}</ErrorList>
+      <HtmlErrorList id="upload-errors">{getErrors()}</HtmlErrorList>
     </fieldset>
   );
 }

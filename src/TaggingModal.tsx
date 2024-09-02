@@ -1,13 +1,13 @@
-import Modal from "./Modal.tsx";
+import HtmlModal from "./html/HtmlModal.tsx";
 import statementsState from "./state/statementsState.ts";
 import TaggingForm from "./TaggingForm.tsx";
 import { ExtendProps } from "./types.ts";
 
-type Props = ExtendProps<typeof Modal, {}, "header" | "body">;
+type Props = ExtendProps<typeof HtmlModal, {}, "header" | "body">;
 
 export default function TaggingModal(props: Props) {
   return (
-    <Modal
+    <HtmlModal
       {...props}
       header={`${statementsState.getUntaggedTransactionCount()} untagged transactions remain.`}
       body={TaggingForm}

@@ -1,4 +1,4 @@
-import { ExtendProps } from "./types.ts";
+import { ExtendProps } from "../types.ts";
 import {
   Component,
   JSX,
@@ -8,7 +8,7 @@ import {
   Signal,
   splitProps,
 } from "solid-js";
-import { renderElementOrComponent } from "./utilities.tsx";
+import { renderElementOrComponent } from "../utilities.tsx";
 
 type Props = ExtendProps<
   "dialog",
@@ -19,7 +19,7 @@ type Props = ExtendProps<
   },
   "children"
 >;
-export default function Modal(props: Props) {
+export default function HtmlModal(props: Props) {
   const [local, parent] = splitProps(props, ["isOpen", "header", "body"]);
 
   const [getIsOpen, setIsOpen] = local.isOpen;

@@ -1,8 +1,8 @@
 import { ExtendProps, Tag, Transaction } from "./types.ts";
 import statementsState from "./state/statementsState.ts";
 import { For, splitProps } from "solid-js";
-import HtmlDate from "./Date.tsx";
-import Amount from "./Amount.tsx";
+import HtmlDate from "./html/HtmlDate.tsx";
+import HtmlAmount from "./html/HtmlAmount.tsx";
 
 type Props = ExtendProps<"table", { tag: Tag }, "children">;
 export default function SpendingSummaryTable(props: Props) {
@@ -14,17 +14,12 @@ export default function SpendingSummaryTable(props: Props) {
       .filter((transaction) => getRegexp().test(transaction.description));
   const getTransactionsByDate = () => {
     let dateTransactionsMap: Record<string, Transaction[]> = {};
-    const transactionsSortedByDate = getTransactions().sort(
-      (a, b) => a.date.getTime() - b.date.getTime(),
-    );
-    const minDate = new Date(transactionsSortedByDate[0].date.toDateString());
+    const minDate = new Date(getTransactions()[0].date.toDateString());
     const maxDate = new Date(
-      transactionsSortedByDate[
-        transactionsSortedByDate.length - 1
-      ].date.toDateString(),
+      getTransactions()[getTransactions().length - 1].date.toDateString(),
     );
     for (let i = new Date(minDate); i <= maxDate; i.setDate(i.getDate() + 1)) {
-      for (const transaction of transactionsSortedByDate) {
+      for (const transaction of getTransactions()) {
         const dateKey = transaction.date.toDateString();
         const date = new Date(dateKey);
         if (i.toDateString() === date.toDateString())
@@ -50,7 +45,7 @@ export default function SpendingSummaryTable(props: Props) {
           <td>{local.tag.label}</td>
           <td>{local.tag.text.split("|").join(", ")}</td>
           <td>
-            <Amount
+            <HtmlAmount
               value={getTransactions().reduce(
                 (acc, transaction) => acc + transaction.amount,
                 0,
@@ -76,7 +71,7 @@ export default function SpendingSummaryTable(props: Props) {
                 </td>
                 <td>{transactions.length}</td>
                 <td>
-                  <Amount
+                  <HtmlAmount
                     title={transactions
                       .map((transaction) => transaction.description)
                       .join(", ")}

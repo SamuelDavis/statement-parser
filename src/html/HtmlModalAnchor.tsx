@@ -1,5 +1,5 @@
 import { Component, createSignal, JSX, Signal, splitProps } from "solid-js";
-import { ExtendProps, isFunction } from "./types.ts";
+import { ExtendProps, isFunction } from "../types.ts";
 
 type Props = ExtendProps<
   "button",
@@ -10,7 +10,7 @@ type Props = ExtendProps<
       | Component<{ isOpen: Signal<boolean> }>;
   }
 >;
-export default function ModalAnchor(props: Props) {
+export default function HtmlModalAnchor(props: Props) {
   const [local, parent] = splitProps(props, ["open", "onClick", "modal"]);
   const isOpen = createSignal(local.open ?? false);
   const [_, setIsOpen] = isOpen;

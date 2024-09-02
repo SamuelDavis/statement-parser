@@ -1,4 +1,3 @@
-import ErrorList from "./ErrorList.tsx";
 import {
   ExtendProps,
   includes,
@@ -7,9 +6,10 @@ import {
   isNumber,
   NormalHeader,
   normalHeaders,
-} from "./types.ts";
+} from "../types.ts";
+import uploadState from "../state/uploadState.ts";
 import { createSignal, For, splitProps } from "solid-js";
-import uploadState from "./state/uploadState.ts";
+import HtmlErrorList from "../html/HtmlErrorList.tsx";
 
 type Props = ExtendProps<
   "select",
@@ -53,7 +53,7 @@ export default function HeaderSelect(props: Props) {
           {(value) => <option value={value}>{value}</option>}
         </For>
       </select>
-      <ErrorList id={errorListId}>{getError()}</ErrorList>
+      <HtmlErrorList id={errorListId}>{getError()}</HtmlErrorList>
     </fieldset>
   );
 }

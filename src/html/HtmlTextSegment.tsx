@@ -1,4 +1,4 @@
-import type { ExtendProps, TextSegment } from "./types.ts";
+import type { ExtendProps, TextSegment } from "../types.ts";
 import { JSX, splitProps } from "solid-js";
 
 type Props = ExtendProps<
@@ -6,7 +6,7 @@ type Props = ExtendProps<
   { value: TextSegment; style?: JSX.CSSProperties },
   "children"
 >;
-export default function TextSegment(props: Props) {
+export default function HtmlTextSegment(props: Props) {
   const [local, parent] = splitProps(props, ["value", "style"]);
   const getStyle = (): JSX.CSSProperties => ({
     ...(local.style ?? {}),

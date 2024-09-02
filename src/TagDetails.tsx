@@ -2,11 +2,11 @@ import { For, Show, splitProps } from "solid-js";
 import { ExtendProps, includes, isHtml, Tag, Transaction } from "./types.ts";
 import tagsState from "./state/tagsState.ts";
 import statementsState from "./state/statementsState.ts";
-import HtmlDate from "./Date.tsx";
+import HtmlDate from "./html/HtmlDate.tsx";
 import { createSignal } from "./utilities.tsx";
 import LineChart from "./LineChart.tsx";
 import { ChartConfiguration } from "chart.js/auto";
-import Amount from "./Amount.tsx";
+import HtmlAmount from "./html/HtmlAmount.tsx";
 
 export default function TagDetails() {
   const [getTag, setTag] = createSignal<undefined | Tag>(undefined, {
@@ -146,13 +146,13 @@ function TagArticle(props: Props) {
       </h3>
       <h3 role="group">
         <output>
-          Total: <Amount value={getTotal()} />
+          Total: <HtmlAmount value={getTotal()} />
         </output>
         <output>
-          Per Transaction: <Amount value={getPerTransactionAverage()} />
+          Per Transaction: <HtmlAmount value={getPerTransactionAverage()} />
         </output>
         <output>
-          Per Date: <Amount value={getPerDateAverage()} />
+          Per Date: <HtmlAmount value={getPerDateAverage()} />
         </output>
       </h3>
       <ul role="group">

@@ -1,8 +1,8 @@
-import { ExtendProps } from "./types.ts";
+import { ExtendProps } from "../types.ts";
 import { mergeProps } from "solid-js";
 
 type Props = ExtendProps<"i", { kind: string }, "children">;
-export default function Icon(props: Props) {
+export default function HtmlIcon(props: Props) {
   props = mergeProps({ children: props.kind }, props);
   return (
     <i

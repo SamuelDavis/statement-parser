@@ -1,7 +1,7 @@
 import { For } from "solid-js";
 import tagsState from "./state/tagsState.ts";
 import { ExtendProps } from "./types.ts";
-import Icon from "./Icon.tsx";
+import HtmlIcon from "./html/HtmlIcon.tsx";
 import statementsState from "./state/statementsState.ts";
 
 type Props = ExtendProps<"table">;
@@ -27,10 +27,10 @@ export default function TagSummaryTable(props: Props) {
                   </th>
                   <td></td>
                   <th>
-                    <Icon kind="edit" />
+                    <HtmlIcon kind="edit" />
                   </th>
                   <th>
-                    <Icon kind="delete" />
+                    <HtmlIcon kind="delete" />
                   </th>
                 </tr>
               </thead>
@@ -42,7 +42,7 @@ export default function TagSummaryTable(props: Props) {
                       <td>{tag.text}</td>
                       <td></td>
                       <td>
-                        <Icon kind="delete" onClick={() => undefined} />
+                        <HtmlIcon kind="delete" onClick={() => undefined} />
                       </td>
                     </tr>
                   )}

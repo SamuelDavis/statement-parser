@@ -1,4 +1,4 @@
-import { ExtendProps } from "./types.ts";
+import { ExtendProps } from "../types.ts";
 import { JSX, splitProps } from "solid-js";
 
 type Props = ExtendProps<
@@ -6,7 +6,7 @@ type Props = ExtendProps<
   { value: number; style?: JSX.CSSProperties },
   "children"
 >;
-export default function Amount(props: Props) {
+export default function HtmlAmount(props: Props) {
   const [local, parent] = splitProps(props, ["value", "style"]);
   const getStyle = (): JSX.CSSProperties => ({
     ...(local.style ?? {}),

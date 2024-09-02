@@ -6,12 +6,12 @@ import {
   Transaction,
 } from "./types.ts";
 import { createSignal, For, Show, splitProps } from "solid-js";
-import HtmlDate from "./Date.tsx";
-import Amount from "./Amount.tsx";
+import HtmlDate from "./html/HtmlDate.tsx";
+import HtmlAmount from "./html/HtmlAmount.tsx";
 import { debounce } from "@solid-primitives/scheduled";
-import ErrorList from "./ErrorList.tsx";
+import HtmlErrorList from "./html/HtmlErrorList.tsx";
 import { parseTextIntoSegments } from "./utilities.tsx";
-import TextSegment from "./TextSegment.tsx";
+import HtmlTextSegment from "./html/HtmlTextSegment.tsx";
 import statementsState from "./state/statementsState.ts";
 import tagsState from "./state/tagsState.ts";
 
@@ -121,14 +121,14 @@ export default function TaggingForm(props: Props) {
                       <HtmlDate value={getTransaction().date} />
                     </td>
                     <td>
-                      <Amount value={getTransaction().amount} />
+                      <HtmlAmount value={getTransaction().amount} />
                     </td>
                   </tr>
                 </tbody>
               </table>
               <blockquote>
                 <For each={getTransaction().segments}>
-                  {(segment) => <TextSegment value={segment} />}
+                  {(segment) => <HtmlTextSegment value={segment} />}
                 </For>
               </blockquote>
             </section>
@@ -159,7 +159,7 @@ export default function TaggingForm(props: Props) {
                 aria-describedby="text-error"
                 required
               />
-              <ErrorList id="text-error">{getError()}</ErrorList>
+              <HtmlErrorList id="text-error">{getError()}</HtmlErrorList>
               <datalist id="text-list">
                 <For each={tagsState.getTexts()}>
                   {(value) => <option value={value} />}
@@ -189,11 +189,11 @@ export default function TaggingForm(props: Props) {
                           </td>
                           <td>
                             <For each={transaction.segments}>
-                              {(segment) => <TextSegment value={segment} />}
+                              {(segment) => <HtmlTextSegment value={segment} />}
                             </For>
                           </td>
                           <td>
-                            <Amount value={transaction.amount} />
+                            <HtmlAmount value={transaction.amount} />
                           </td>
                         </tr>
                       )}

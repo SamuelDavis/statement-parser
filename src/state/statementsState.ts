@@ -66,7 +66,9 @@ const statementsState = createRoot(() => {
       ),
     }));
   const getTransactions = createMemo(() =>
-    getStatements().flatMap((statement) => statement.transactions),
+    getStatements()
+      .flatMap((statement) => statement.transactions)
+      .sort((a, b) => a.date.getTime() - b.date.getTime()),
   );
   const getUntaggedTransactions = createMemo(() => {
     const texts = tagsState.getTexts();

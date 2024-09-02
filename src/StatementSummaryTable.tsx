@@ -1,6 +1,6 @@
 import { For } from "solid-js";
-import Date from "./Date.tsx";
-import Amount from "./Amount.tsx";
+import HtmlDate from "./html/HtmlDate.tsx";
+import HtmlAmount from "./html/HtmlAmount.tsx";
 import { ExtendProps } from "./types.ts";
 import statementsState from "./state/statementsState.ts";
 
@@ -24,17 +24,17 @@ export default function StatementSummaryTable(props: Props) {
             <tr>
               <td>{summary.name}</td>
               <td>
-                <Date value={summary.date} />
+                <HtmlDate value={summary.date} />
               </td>
               <td>
-                <Date value={summary.from} />
+                <HtmlDate value={summary.from} />
               </td>
               <td>
-                <Date value={summary.to} />
+                <HtmlDate value={summary.to} />
               </td>
               <td>{summary.transactionCount}</td>
               <td>
-                <Amount value={summary.total} />
+                <HtmlAmount value={summary.total} />
               </td>
             </tr>
           )}
