@@ -7,7 +7,7 @@ import UploadFlow from "./UploadFlow.tsx";
 
 type Props = { isOpen: Signal<boolean> };
 export default function UploadModal(props: Props) {
-  const [getIsOpen, setIsOpen] = props.isOpen;
+  const [, setIsOpen] = props.isOpen;
 
   function onSubmit(statement: Statement) {
     if (
