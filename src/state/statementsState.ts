@@ -1,4 +1,4 @@
-import { createRoot } from "solid-js";
+import { createMemo, createRoot } from "solid-js";
 import { createSignal } from "../utilities.tsx";
 import {
   hasProperties,
@@ -65,19 +65,18 @@ const statementsState = createRoot(() => {
         0,
       ),
     }));
-  const getTransactions = () =>
-    getStatements().flatMap((statement) => statement.transactions);
-
-  const getUntaggedTransactions = () => {
-    const transactions = getTransactions();
+  const getTransactions = createMemo(() =>
+    getStatements().flatMap((statement) => statement.transactions),
+  );
+  const getUntaggedTransactions = createMemo(() => {
     const texts = tagsState.getTexts();
-    return transactions.filter(
+    return getTransactions().filter(
       (transaction) =>
         !texts.some((text) =>
           new RegExp(text, "gi").test(transaction.description),
         ),
     );
-  };
+  });
 
   const getUntaggedTransactionCount = () => getUntaggedTransactions().length;
 

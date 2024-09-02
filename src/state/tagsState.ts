@@ -1,4 +1,4 @@
-import { createRoot } from "solid-js";
+import { createMemo, createRoot } from "solid-js";
 import { createSignal, uniq } from "../utilities.tsx";
 import { hasProperties, isArray, Tag } from "../types.ts";
 
@@ -22,9 +22,10 @@ const tagsState = createRoot(() => {
         label: tag.label,
       })),
     ]);
-  const getLabels = () => uniq(tagsState.getTags().map((tag) => tag.label));
-  const getTexts = () =>
-    uniq(tagsState.getTags().flatMap((tag) => tag.text.split("|")));
+  const getLabels = createMemo(() => uniq(getTags().map((tag) => tag.label)));
+  const getTexts = createMemo(() =>
+    uniq(getTags().flatMap((tag) => tag.text.split("|"))),
+  );
   const getTagByLabel = (label: Tag["label"]): undefined | Tag => {
     const text = getTags()
       .filter((tag) => tag.label === label)
