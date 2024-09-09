@@ -9,6 +9,7 @@ import HtmlFlexGroup from "./html/HtmlFlexGroup.tsx";
 import TagSummary from "./summary/TagSummary.tsx";
 import TotalSpendingSummary from "./summary/TotalSpendingSummary.tsx";
 import derivedState from "./state/derivedState.ts";
+import TransactionSummaryTable from "./summary/TransactionSummaryTable.tsx";
 
 export default function App() {
   return (
@@ -34,6 +35,10 @@ export default function App() {
             </For>
           </HtmlFlexGroup>
         </section>
+      </article>
+      <article>
+        <h1>All Transactions</h1>
+        <TransactionSummaryTable />
       </article>
       <TotalSpendingSummary />
       <TagSummary />
