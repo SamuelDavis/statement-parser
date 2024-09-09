@@ -76,3 +76,7 @@ export function parseTextIntoSegments(
 export function uniq<Value extends string>(list: Value[]): Value[] {
   return list.filter((v, i, a) => a.indexOf(v) === i);
 }
+
+export function textToRegexp(text: string): RegExp {
+  return new RegExp(text, "gi");
+}

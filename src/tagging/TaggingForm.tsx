@@ -8,7 +8,7 @@ import {
 import { createMemo, createSignal, For, Show, splitProps } from "solid-js";
 import { debounce } from "@solid-primitives/scheduled";
 import HtmlErrorList from "../html/HtmlErrorList.tsx";
-import { parseTextIntoSegments } from "../utilities.tsx";
+import { parseTextIntoSegments, textToRegexp } from "../utilities.tsx";
 import tagsState from "../state/tagsState.ts";
 import TransactionSummary from "../summary/TransactionSummary.tsx";
 import HtmlTextSegment from "../html/HtmlTextSegment.tsx";
@@ -49,6 +49,8 @@ export default function TaggingForm(props: Props) {
   };
 
   function onTextInput(e: Event) {
+    const transaction = getSegmentedTransaction();
+    if (!transaction) return;
     const input = e.target;
     if (!isHtml("input", input)) throw new TypeError();
 
@@ -59,8 +61,14 @@ export default function TaggingForm(props: Props) {
     }
 
     try {
-      setRegexp(new RegExp(input.value, "gi"));
-      setError(undefined);
+      const regexp = textToRegexp(input.value);
+      if (regexp.test(transaction.description)) {
+        setRegexp(regexp);
+        setError(undefined);
+      } else {
+        setRegexp(undefined);
+        setError("Text does not match Transaction Description.");
+      }
     } catch (e) {
       if (!(e instanceof Error)) throw new TypeError();
       setRegexp(undefined);

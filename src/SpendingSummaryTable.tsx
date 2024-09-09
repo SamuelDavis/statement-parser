@@ -3,11 +3,12 @@ import statementsState from "./state/statementsState.ts";
 import { For, splitProps } from "solid-js";
 import HtmlDate from "./html/HtmlDate.tsx";
 import HtmlAmount from "./html/HtmlAmount.tsx";
+import { textToRegexp } from "./utilities.tsx";
 
 type Props = ExtendProps<"table", { tag: Tag }, "children">;
 export default function SpendingSummaryTable(props: Props) {
   const [local, parent] = splitProps(props, ["tag"]);
-  const getRegexp = () => new RegExp(local.tag.text, "gi");
+  const getRegexp = () => textToRegexp(local.tag.text);
   const getTransactions = () =>
     statementsState
       .getTransactions()

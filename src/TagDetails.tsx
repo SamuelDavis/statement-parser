@@ -10,7 +10,7 @@ import {
 import tagsState from "./state/tagsState.ts";
 import statementsState from "./state/statementsState.ts";
 import HtmlDate from "./html/HtmlDate.tsx";
-import { createSignal } from "./utilities.tsx";
+import { createSignal, textToRegexp } from "./utilities.tsx";
 import LineChart from "./LineChart.tsx";
 import { ChartConfiguration } from "chart.js/auto";
 import HtmlAmount from "./html/HtmlAmount.tsx";
@@ -64,7 +64,7 @@ function TagArticle(props: Props) {
     storageKey: "tag-group-by",
   });
   const getTexts = () => local.tag.text.split("|");
-  const getRegexp = () => new RegExp(local.tag.text, "gi");
+  const getRegexp = () => textToRegexp(local.tag.text);
   const getTransactions = () =>
     statementsState
       .getTransactions()

@@ -1,5 +1,5 @@
 import { createMemo, createRoot } from "solid-js";
-import { createSignal, uniq } from "../utilities.tsx";
+import { createSignal, textToRegexp, uniq } from "../utilities.tsx";
 import { hasProperties, isArray, Tag, Transaction } from "../types.ts";
 
 const tagsState = createRoot(() => {
@@ -14,21 +14,10 @@ const tagsState = createRoot(() => {
     },
   });
 
-  const addTag = (tag: Tag) =>
-    setTags((tags) => [
-      ...tags,
-      ...tag.text.split("|").map((text) => ({
-        text,
-        label: tag.label,
-      })),
-    ]);
+  const addTag = (tag: Tag) => setTags((tags) => [...tags, tag]);
   const getLabels = createMemo(() => uniq(getTags().map((tag) => tag.label)));
-  const getTexts = createMemo(() =>
-    uniq(getTags().flatMap((tag) => tag.text.split("|"))),
-  );
-  const getRegexps = createMemo(() =>
-    getTexts().map((text) => new RegExp(text, "gi")),
-  );
+  const getTexts = createMemo(() => uniq(getTags().map((tag) => tag.text)));
+  const getRegexps = createMemo(() => getTexts().map(textToRegexp));
 
   function getTagByLabel(label: Tag["label"]): undefined | Tag {
     const text = getTags()

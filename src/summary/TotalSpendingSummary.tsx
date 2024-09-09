@@ -4,6 +4,7 @@ import { ChartConfiguration } from "chart.js/auto";
 import tagsState from "../state/tagsState.ts";
 import HtmlChart from "../html/HtmlChart.tsx";
 import { ExtendProps } from "../types.ts";
+import { textToRegexp } from "../utilities.tsx";
 
 type Props = ExtendProps<"article">;
 export default function TotalSpendingSummary(props: Props) {
@@ -30,7 +31,7 @@ export default function TotalSpendingSummary(props: Props) {
             return transactions
               .filter((transaction) => {
                 if (!tag) return false;
-                if (!new RegExp(tag.text, "gi").test(transaction.description))
+                if (!textToRegexp(tag.text).test(transaction.description))
                   if (isBefore(transaction.date, date)) return false;
                 if (next)
                   if (

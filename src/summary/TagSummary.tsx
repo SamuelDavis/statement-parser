@@ -12,7 +12,7 @@ import {
 import { ChartConfiguration } from "chart.js/auto";
 import tagsState from "../state/tagsState.ts";
 import HtmlChart from "../html/HtmlChart.tsx";
-import { createSignal } from "../utilities.tsx";
+import { createSignal, textToRegexp } from "../utilities.tsx";
 
 type Props = ExtendProps<"article", { tag?: Tag }>;
 
@@ -27,7 +27,7 @@ export default function TagSummary(props: Props) {
   const getGroupByOptions = (): GroupBy[] => Object.values(GroupBy);
   const getRegexp = () => {
     const tag = getTag();
-    return tag ? new RegExp(tag.text, "gi") : undefined;
+    return tag ? textToRegexp(tag.text) : undefined;
   };
   const getTransactions = () => {
     const regexp = getRegexp();

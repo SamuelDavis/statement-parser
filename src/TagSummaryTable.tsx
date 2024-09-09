@@ -3,6 +3,7 @@ import tagsState from "./state/tagsState.ts";
 import { ExtendProps } from "./types.ts";
 import HtmlIcon from "./html/HtmlIcon.tsx";
 import statementsState from "./state/statementsState.ts";
+import { textToRegexp } from "./utilities.tsx";
 
 type Props = ExtendProps<"table">;
 export default function TagSummaryTable(props: Props) {
@@ -15,7 +16,7 @@ export default function TagSummaryTable(props: Props) {
             .getTransactions()
             .filter((transaction) =>
               tags.some((tag) =>
-                new RegExp(tag.text, "gi").test(transaction.description),
+                textToRegexp(tag.text).test(transaction.description),
               ),
             ).length;
           return (
