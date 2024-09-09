@@ -1,5 +1,5 @@
-import { ExtendProps, Statement } from "../types.ts";
-import { createMemo, splitProps } from "solid-js";
+import { ExtendProps, Statement, Transaction } from "../types.ts";
+import { createMemo, For, splitProps } from "solid-js";
 import {
   differenceInCalendarDays,
   differenceInCalendarMonths,
@@ -31,6 +31,24 @@ export default function StatementSummary(props: Props) {
     const perMonth = sumTotal / numMonths;
     return { perTransaction, perDay, perMonth, perWeek };
   });
+  const getExtremeTransactions = createMemo(() => {
+    let max: Transaction[] = [];
+    let min: Transaction[] = [];
+    for (const transaction of local.statement.transactions) {
+      if (max.length === 0) max = [transaction];
+      else if (max.some((max) => max.amount < transaction.amount))
+        max = [transaction];
+      else if (max.every((max) => max.amount === transaction.amount))
+        max.push(transaction);
+      if (min.length === 0) min = [transaction];
+      else if (min.some((min) => min.amount > transaction.amount))
+        min = [transaction];
+      else if (min.every((min) => min.amount === transaction.amount))
+        min.push(transaction);
+    }
+    return { max, min };
+  });
+
   return (
     <article {...parent}>
       <HtmlFlexGroup>
@@ -89,6 +107,22 @@ export default function StatementSummary(props: Props) {
                 </HtmlLabel>
               </dd>
             </dl>
+            <dt>Highest Transaction(s)</dt>
+            <For each={getExtremeTransactions().max}>
+              {(transaction) => (
+                <dd>
+                  <HtmlAmount value={transaction.amount} />
+                </dd>
+              )}
+            </For>
+            <dt>Lowest Transaction(s)</dt>
+            <For each={getExtremeTransactions().min}>
+              {(transaction) => (
+                <dd>
+                  <HtmlAmount value={transaction.amount} />
+                </dd>
+              )}
+            </For>
           </dl>
         </section>
       </HtmlFlexGroup>
