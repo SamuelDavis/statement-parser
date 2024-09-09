@@ -24,15 +24,11 @@ export default function TaggingForm(props: Props) {
   const [getError, setError] = createSignal<undefined | string>();
   const [getRegexp, setRegexp] = createSignal<undefined | RegExp>();
   const getIsInvalid = () => Boolean(getError());
-  const getUntaggedTransactions = createMemo(() => {
-    let transactions = local.transactions;
-    // why doesn't the first filter work?
-    for (let i = 0; i < 2; i++)
-      transactions = transactions.filter(
-        (transaction) => !tagsState.isTagged(transaction),
-      );
-    return transactions;
-  });
+  const getUntaggedTransactions = createMemo(() =>
+    local.transactions.filter(
+      (transaction) => !tagsState.isTagged(transaction),
+    ),
+  );
   const getTotalTransactions = () => local.transactions.length;
   const getTotalUntaggedTransactions = () => getUntaggedTransactions().length;
   const getTotalRemainingTransactions = () =>
@@ -62,12 +58,11 @@ export default function TaggingForm(props: Props) {
 
     try {
       const regexp = textToRegexp(input.value);
-      if (regexp.test(transaction.description)) {
-        setRegexp(regexp);
-        setError(undefined);
-      } else {
-        setRegexp(undefined);
+      setError(undefined);
+      setRegexp(regexp);
+      if (!regexp.test(transaction.description)) {
         setError("Text does not match Transaction Description.");
+        setRegexp(undefined);
       }
     } catch (e) {
       if (!(e instanceof Error)) throw new TypeError();
