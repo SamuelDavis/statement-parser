@@ -3,6 +3,7 @@ import statementsState from "../state/statementsState.ts";
 import TaggingForm from "./TaggingForm.tsx";
 import { ExtendProps, Statement } from "../types.ts";
 import { Show, splitProps } from "solid-js";
+import derivedState from "../state/derivedState.ts";
 
 type Props = ExtendProps<
   typeof HtmlModal,
@@ -17,7 +18,7 @@ export default function TaggingModal(props: Props) {
   return (
     <HtmlModal
       {...parent}
-      header={`${statementsState.getUntaggedTransactionCount()} untagged transactions remain.`}
+      header={`${derivedState.getUntaggedTransactionCount()} untagged transactions remain.`}
       body={
         <Show
           when={getHasTransactions()}

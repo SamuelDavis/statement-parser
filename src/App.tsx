@@ -8,6 +8,7 @@ import StatementSummary from "./summary/StatementSummary.tsx";
 import HtmlFlexGroup from "./html/HtmlFlexGroup.tsx";
 import TagSummary from "./summary/TagSummary.tsx";
 import TotalSpendingSummary from "./summary/TotalSpendingSummary.tsx";
+import derivedState from "./state/derivedState.ts";
 
 export default function App() {
   return (
@@ -16,10 +17,10 @@ export default function App() {
         <HtmlNavigation>
           <HtmlModalAnchor modal={UploadModal}>Upload</HtmlModalAnchor>
           <HtmlModalAnchor
-            disabled={statementsState.getUntaggedTransactionCount() === 0}
+            disabled={derivedState.getUntaggedTransactionCount() === 0}
             modal={TaggingModal}
           >
-            Tag Statements ({statementsState.getUntaggedTransactionCount()})
+            Tag Statements ({derivedState.getUntaggedTransactionCount()})
           </HtmlModalAnchor>
         </HtmlNavigation>
       </header>

@@ -10,7 +10,6 @@ import {
   Statement,
   Transaction,
 } from "../types.ts";
-import tagsState from "./tagsState.ts";
 
 function sortTransactions(transactions: Transaction[]): Transaction[] {
   return transactions.sort((a, b) => a.date.getTime() - b.date.getTime());
@@ -62,25 +61,12 @@ const statementsState = createRoot(() => {
       getStatements().flatMap((statement) => statement.transactions),
     );
   });
-  const getUntaggedTransactions = createMemo(() => {
-    let transactions = getTransactions();
-    // why doesn't the first filter work?
-    for (let i = 0; i < 2; i++)
-      transactions = transactions.filter(
-        (transaction) => !tagsState.isTagged(transaction),
-      );
-    return transactions;
-  });
-
-  const getUntaggedTransactionCount = () => getUntaggedTransactions().length;
 
   return {
     getStatements,
     statementExists,
     addStatement,
     getTransactions,
-    getUntaggedTransactions,
-    getUntaggedTransactionCount,
   };
 });
 

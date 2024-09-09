@@ -5,7 +5,7 @@ import {
   TextSegment,
   Transaction,
 } from "../types.ts";
-import { createMemo, createSignal, For, Show, splitProps } from "solid-js";
+import { createSignal, For, Show, splitProps } from "solid-js";
 import { debounce } from "@solid-primitives/scheduled";
 import HtmlErrorList from "../html/HtmlErrorList.tsx";
 import { parseTextIntoSegments, textToRegexp } from "../utilities.tsx";
@@ -13,6 +13,7 @@ import tagsState from "../state/tagsState.ts";
 import TransactionSummary from "../summary/TransactionSummary.tsx";
 import HtmlTextSegment from "../html/HtmlTextSegment.tsx";
 import TaggingMatchingTransactionsPreview from "./TaggingMatchingTransactionsPreview.tsx";
+import derivedState from "../state/derivedState.ts";
 
 type Props = ExtendProps<
   "form",
@@ -24,18 +25,12 @@ export default function TaggingForm(props: Props) {
   const [getError, setError] = createSignal<undefined | string>();
   const [getRegexp, setRegexp] = createSignal<undefined | RegExp>();
   const getIsInvalid = () => Boolean(getError());
-  const getUntaggedTransactions = createMemo(() =>
-    local.transactions.filter(
-      (transaction) => !tagsState.isTagged(transaction),
-    ),
-  );
   const getTotalTransactions = () => local.transactions.length;
-  const getTotalUntaggedTransactions = () => getUntaggedTransactions().length;
   const getTotalRemainingTransactions = () =>
-    getTotalTransactions() - getTotalUntaggedTransactions();
+    getTotalTransactions() - derivedState.getUntaggedTransactionCount();
   const getSegmentedTransaction = (): undefined | SegmentedTransaction => {
     const regexp = getRegexp();
-    const untaggedTransactions = getUntaggedTransactions();
+    const untaggedTransactions = derivedState.getUntaggedTransactions();
     const transaction = untaggedTransactions[0];
     if (!transaction) return undefined;
     const segments: TextSegment[] = regexp
