@@ -1,5 +1,6 @@
 import { Component, createSignal, JSX, Signal, splitProps } from "solid-js";
 import { ExtendProps, isFunction } from "../types.ts";
+import { Portal } from "solid-js/web";
 
 type Props = ExtendProps<
   "button",
@@ -25,7 +26,7 @@ export default function HtmlModalAnchor(props: Props) {
   return (
     <>
       <button onClick={onClick} {...parent} />
-      {local.modal({ isOpen })}
+      <Portal>{local.modal({ isOpen })}</Portal>
     </>
   );
 }
