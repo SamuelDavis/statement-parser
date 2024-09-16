@@ -5,7 +5,9 @@ import {
   ValidComponent,
 } from "solid-js";
 import { Dynamic } from "solid-js/web";
-import { ExtendProps, isArray, isFunction, TargetedEvent } from "../types.ts";
+import { ExtendProps } from "../types.ts";
+
+import { handle } from "../utilities.ts";
 
 export const ModalContext = createContext({ open: createSignal(false) });
 
@@ -16,14 +18,9 @@ export default function Anchor(props: Props) {
   const open = createSignal(local.open ?? false);
   const [, setOpen] = open;
 
-  function onClick(event: TargetedEvent<HTMLButtonElement, MouseEvent>) {
+  function onClick(event: MouseEvent) {
     setOpen(true);
-    if (isArray(local.onClick)) {
-      const [handler, data] = local.onClick;
-      handler(data, event);
-    } else if (isFunction(local.onClick)) {
-      local.onClick(event);
-    }
+    handle(local.onClick, event);
   }
 
   return (

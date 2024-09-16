@@ -5,7 +5,6 @@ import {
   isNumber,
   isString,
   NormalHeader,
-  TargetedEvent,
   Upload,
 } from "../types.ts";
 import { createSignal, For, Setter, splitProps } from "solid-js";
@@ -25,7 +24,7 @@ export default function UploadHeaderSelect(props: Props) {
   const [local, parent] = splitProps(props, ["normal", "upload", "setMapping"]);
   const [getErrors, setErrors] = createSignal<undefined | string[]>(undefined);
 
-  function onInput(event: TargetedEvent<HTMLSelectElement, InputEvent>) {
+  function onInput(event: InputEvent) {
     const select = event.target;
     if (!isHtml("select", select)) throw new TypeError();
     const { value } = select;
@@ -37,10 +36,10 @@ export default function UploadHeaderSelect(props: Props) {
       validate(local.normal, value, local.upload.rows);
       local.setMapping((mapping) => ({ ...mapping, [local.normal]: value }));
       setErrors(undefined);
-    } catch (e) {
+    } catch (error) {
       local.setMapping(({ [local.normal]: _, ...mapping }) => mapping);
-      if (e instanceof Error) setErrors([e.message]);
-      else console.error(e);
+      if (error instanceof Error) setErrors([error.message]);
+      else console.error(error);
     }
   }
 

@@ -1,11 +1,5 @@
 import { createSignal, Setter, splitProps } from "solid-js";
-import {
-  ExtendProps,
-  isArray,
-  isHtml,
-  TargetedEvent,
-  Upload,
-} from "../types.ts";
+import { ExtendProps, isArray, isHtml, Upload } from "../types.ts";
 import Papa from "papaparse";
 import ErrorList from "../Components/ErrorList.tsx";
 
@@ -27,9 +21,7 @@ export default function UploadFileInput(props: Props) {
   const [getErrors, setErrors] = createSignal<undefined | string[]>();
   const getIsInvalid = () => Boolean(getErrors());
 
-  async function onFileUpload(
-    event: TargetedEvent<HTMLInputElement, InputEvent>,
-  ) {
+  async function onFileUpload(event: InputEvent) {
     local.setUpload(undefined);
     setErrors(undefined);
 
@@ -50,7 +42,7 @@ export default function UploadFileInput(props: Props) {
     if (!isArray(headers)) throw new TypeError();
     const rows = parsed.data;
     const errors = parsed.errors.map(
-      (e) => `${e.message} on row ${(e.row ?? 0) + 1}`,
+      (error) => `${error.message} on row ${(error.row ?? 0) + 1}`,
     );
 
     if (headers.length === 0)

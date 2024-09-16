@@ -1,14 +1,15 @@
 import { ExtendProps } from "../types.ts";
 import { splitProps } from "solid-js";
-import Number from "./Number.tsx";
 
 type Props = ExtendProps<"span", { value: number }, "children">;
-
-export default function Amount(props: Props) {
+export default function Number(props: Props) {
   const [local, parent] = splitProps(props, ["value"]);
   return (
     <span {...parent}>
-      $<Number value={local.value} />
+      {local.value.toLocaleString(undefined, {
+        maximumFractionDigits: 2,
+        minimumFractionDigits: 2,
+      })}
     </span>
   );
 }

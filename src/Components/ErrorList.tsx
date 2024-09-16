@@ -9,7 +9,9 @@ export default function Nav(props: Props) {
   return (
     <Show when={getChildren().length > 0}>
       <ul {...parent}>
-        <For each={getChildren()}>{(child) => <li>{child}</li>}</For>
+        <For each={getChildren()}>
+          {(child) => <li aria-invalid={true}>{child}</li>}
+        </For>
       </ul>
     </Show>
   );

@@ -1,26 +1,33 @@
 /* @refresh reload */
-import { render } from "solid-js/web";
-import { Router } from "@solidjs/router";
+import {render} from "solid-js/web";
+import {Route, Router} from "@solidjs/router";
 import App from "./App.tsx";
+import "./index.css";
 import "@picocss/pico/css/pico.classless.min.css";
-import { lazy } from "solid-js";
-
-const routes: Record<string, string> = {
-  "/": "./Pages/Dashboard.tsx",
-  "/statements": "./Pages/Statements.tsx",
-  "/transactions": "./Pages/Transactions.tsx",
-  "/tags": "./Pages/Tags.tsx",
-  "*404": "./Pages/NotFound.tsx",
-};
+import {lazy} from "solid-js";
 
 render(
   () => (
     <Router root={App}>
-      {Object.entries(routes).map(([uri, filepath]) => ({
-        path: uri,
-        component: lazy(() => import(/* @vite-ignore */ filepath)),
-      }))}
+      <Route path="/" component={lazy(() => import("./Pages/Dashboard.tsx"))} />
+      <Route
+        path="/statements"
+        component={lazy(() => import("./Pages/Statements.tsx"))}
+      />
+      <Route
+        path="/transactions"
+        component={lazy(() => import("./Pages/Transactions.tsx"))}
+      />
+      <Route path="/tags" component={lazy(() => import("./Pages/Tags.tsx"))} />
+      <Route
+        path="*404"
+        component={lazy(() => import("./Pages/NotFound.tsx"))}
+      />
     </Router>
   ),
   document.body,
 );
+
+Array.prototype.unique = function (cb = (v, i, a) => a.indexOf(v) === i) {
+  return this.filter(cb);
+};

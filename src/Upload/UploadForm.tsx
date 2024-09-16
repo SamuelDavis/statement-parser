@@ -1,20 +1,18 @@
+import { handle } from "../utilities.ts";
 import { createComputed, createSignal, For, Show, splitProps } from "solid-js";
 import {
   ExtendProps,
   hasProperties,
-  isArray,
-  isFunction,
   NormalHeader,
   normalHeaders,
   Statement,
-  TargetedEvent,
   Transaction,
   Upload,
 } from "../types.ts";
 import UploadFileInput from "./UploadFileInput.tsx";
 import UploadHeaderSelect from "./UploadHeaderSelect.tsx";
 import UploadTransactionPreview from "./UploadTransactionPreview.tsx";
-import statements from "../state/statements.ts";
+import statements from "../State/statements.ts";
 
 const steps = [
   "Upload",
@@ -87,7 +85,7 @@ export default function UploadForm(props: Props) {
     });
   });
 
-  function onSubmit(event: TargetedEvent<HTMLFormElement, SubmitEvent>) {
+  function onSubmit(event: SubmitEvent) {
     event.preventDefault();
     const statement = getStatement();
     if (!statement) return;
@@ -98,16 +96,11 @@ export default function UploadForm(props: Props) {
     )
       statements.addStatement(statement);
 
-    if (isArray(local.onSubmit)) {
-      const [handler, data] = local.onSubmit;
-      handler(data, event);
-    } else if (isFunction(local.onSubmit)) {
-      local.onSubmit(event);
-    }
+    handle(local.onSubmit, event);
   }
 
   return (
-    <form onSubmit={onSubmit} {...props}>
+    <form onSubmit={onSubmit} {...parent}>
       <hgroup>
         <progress value={getStep()} max={steps.length} />
         <p>

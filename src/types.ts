@@ -26,13 +26,6 @@ export type ExtendProps<
   Except extends keyof ComponentProps<Parent> = never,
 > = Omit<ComponentProps<Parent>, keyof Props & Except> & Props;
 
-export type TargetedEvent<
-  T extends EventTarget & Element = Element,
-  E extends Event = Event,
-> = E & { target: Element; currentTarget: T } & (E extends SubmitEvent
-    ? { submitter: HTMLElement }
-    : {});
-
 export function includes<List extends readonly any[]>(
   list: List,
   value: any,
@@ -99,4 +92,13 @@ export function isFunction<T extends (...props: any[]) => any>(
   value: any,
 ): value is T {
   return value instanceof Function;
+}
+
+export function isTargetedEvent(
+  value: any,
+): value is Event & { target: HTMLElement; currentTarget: HTMLElement } {
+  return ["target", "currentTarget"].every(
+    (property) =>
+      hasProperty(property, value) && hasProperty("node", value[property]),
+  );
 }

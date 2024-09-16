@@ -1,0 +1,3 @@
+li[aria-invalid] {
+  color: var(--pico-form-element-invalid-focus-color);
+}
