@@ -1,5 +1,5 @@
-import { createRoot } from "solid-js";
-import { createSignal } from "../utilities.ts";
+import { createMemo, createRoot } from "solid-js";
+import { createSignal, stringToRegexp } from "../utilities.ts";
 import { hasProperties, isArray } from "../types.ts";
 
 type Tag = { text: string; label: string };
@@ -24,16 +24,19 @@ const tags = createRoot(() => {
       ),
     ]);
 
-  const getTexts = () =>
+  const getTexts = createMemo(() =>
     getTags()
       .map((tag) => tag.text)
-      .unique();
-  const getLabels = () =>
+      .unique(),
+  );
+  const getLabels = createMemo(() =>
     getTags()
       .map((tag) => tag.label)
-      .unique();
+      .unique(),
+  );
+  const getRegexps = createMemo(() => getTexts().map(stringToRegexp));
 
-  return { getTags, addTags, getTexts, getLabels };
+  return { getTags, addTags, getTexts, getLabels, getRegexps };
 });
 
 export default tags;

@@ -2,8 +2,8 @@
 import {render} from "solid-js/web";
 import {Route, Router} from "@solidjs/router";
 import App from "./App.tsx";
-import "./index.css";
 import "@picocss/pico/css/pico.classless.min.css";
+import "./index.css";
 import {lazy} from "solid-js";
 
 render(

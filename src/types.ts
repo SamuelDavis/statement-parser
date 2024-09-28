@@ -10,9 +10,9 @@ export type Statement = {
   date: Date;
   transactions: Transaction[];
 };
-
 export type Transaction = { date: Date; description: string; amount: number };
 export type NormalHeader = keyof Transaction;
+export type TextSegment = { value: string; match: boolean };
 
 export const normalHeaders: NormalHeader[] = [
   "date",

@@ -5,7 +5,7 @@ import {
   Signal,
   SignalOptions,
 } from "solid-js";
-import { isArray, isFunction, isProperty } from "./types.ts";
+import { isArray, isFunction, isProperty, TextSegment } from "./types.ts";
 
 export function handle<
   H extends JSX.EventHandlerUnion<any, any>,
@@ -61,4 +61,48 @@ export function createSignal<T>(
   }
 
   return signal;
+}
+
+export function stringToRegexp(value: string): RegExp {
+  return new RegExp(value, "gi");
+}
+
+export function segmentText(regexp: RegExp, text: string): TextSegment[] {
+  let segments: TextSegment[] = [];
+  while (text.length) {
+    const result = regexp.exec(text);
+    if (!result) {
+      segments.push({ value: text, match: false });
+      break;
+    }
+
+    const { 0: match = text, index = text.length } = result;
+    const before = text.slice(0, index);
+
+    if (before.length) segments.push({ value: before, match: false });
+
+    const matching = text.slice(index, index + match.length);
+    if (matching.length) segments.push({ value: matching, match: true });
+
+    text = text.slice(index + match.length);
+  }
+
+  return segments;
+  //
+  //
+  //
+  // let position = 0;
+  // let segments: TextSegment[] = [];
+  // for (const match of text.matchAll(regex)) {
+  //   const { index, 0: segment } = match;
+  //   if (index > position) {
+  //     segments.push({ value: text.slice(position, index), match: false });
+  //   }
+  //   position = index + segment.length;
+  //   segments.push({ value: text.slice(index, position), match: true });
+  // }
+  // if (position < text.length)
+  //   segments.push({ value: text.slice(position), match: false });
+  //
+  // return segments;
 }

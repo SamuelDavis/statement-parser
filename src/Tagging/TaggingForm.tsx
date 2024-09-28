@@ -1,30 +1,63 @@
-import { batch, createSignal, For, Show, splitProps } from "solid-js";
-import { handle } from "../utilities.ts";
+import {
+  batch,
+  createEffect,
+  createSignal,
+  For,
+  Show,
+  splitProps,
+} from "solid-js";
+import { handle, stringToRegexp } from "../utilities.ts";
 import Icon from "../Components/Icon.tsx";
-import { ExtendProps } from "../types.ts";
-import TaggingInput from "./TaggingInput.tsx";
+import {
+  ExtendProps,
+  isHtml,
+  Transaction,
+  Transaction as TransactionType,
+} from "../types.ts";
 import ErrorList from "../Components/ErrorList.tsx";
 import tags from "../State/tags.ts";
+import DataList from "../Components/DataList.tsx";
+import derived from "../State/derived.ts";
+import DateStamp from "../Components/DateStamp.tsx";
+import Amount from "../Components/Amount.tsx";
+import Highlight from "../Components/Highlight.tsx";
+import statements from "../State/statements.ts";
+import createDebounce from "@solid-primitives/debounce";
 
 type Props = ExtendProps<"form", {}, "children">;
 
 export default function TaggingForm(props: Props) {
   const [local, parent] = splitProps(props, ["onSubmit"]);
-  const text = createSignal<undefined | string>();
-  const label = createSignal<undefined | string>();
+  const [getText, setText] = createSignal<undefined | string>();
+  const [getTextError, setTextError] = createSignal<undefined | string>();
+  const [getLabel, setLabel] = createSignal<undefined | string>();
+  const [getLabelError, setLabelError] = createSignal<undefined | string>();
   const [getLabels, setLabels] = createSignal<string[]>([]);
-  const labelErrors = createSignal<undefined | string[]>();
-  const [getLabelErrors] = labelErrors;
-  const [, setRegexp] = createSignal<undefined | RegExp>();
-  const [getText, setText] = text;
-  const [getLabel, setLabel] = label;
+  const [getRegexp, setRegexp] = createSignal<undefined | RegExp>();
+  const getUntaggedTransaction = (): undefined | TransactionType =>
+    derived.getUntaggedTransactions()[0] ?? undefined;
+  const [getMatchingTransactions, setMatchingTransactions] = createSignal<
+    TransactionType[]
+  >([]);
+  const dbFn = createDebounce(
+    (regexp: undefined | RegExp, tx: Transaction[]) => {
+      return regexp
+        ? tx.filter((transaction) => !regexp.test(transaction.description))
+        : [];
+    },
+    200,
+  );
+  createEffect(() => {
+    dbFn(getRegexp(), statements.getTransactions());
+  });
 
   function onSubmit(event: SubmitEvent) {
     event.preventDefault();
+
+    if (getLabel()?.trim()) return onAddLabel();
+
     const text = getText();
-    const label = getLabel()?.trim();
     const labels = getLabels();
-    if (label && !labels.includes(label)) labels.push(label);
     if (!text || labels.length === 0) return;
     tags.addTags(...labels.map((label) => ({ label, text })));
     handle(local.onSubmit, event);
@@ -36,39 +69,77 @@ export default function TaggingForm(props: Props) {
     });
   }
 
-  function onAddName() {
-    const name = getLabel()?.trim();
-    if (!name) return;
-    setLabels((names) => [...names, name].unique());
+  function onAddLabel() {
+    const label = getLabel()?.trim();
+    if (!label) return;
+    setLabels((labels) => [...labels, label].unique());
     setLabel(undefined);
   }
 
-  function onRemoveName(name: string) {
-    setLabels((names) => names.filter((n) => n !== name));
+  function onRemoveLabel(label: string) {
+    setLabels((labels) => labels.filter((v) => v !== label));
+    if (!getLabel()) setLabel(label);
   }
 
-  function onTextInput() {
-    const text = getText()?.trim();
-    setRegexp(text ? new RegExp(text, "gi") : undefined);
+  function onTextInput(e: InputEvent) {
+    if (!isHtml("input", e.target)) throw new TypeError();
+    const { value } = e.target;
+    const text = value.trim();
+    try {
+      setText(text);
+      setRegexp(text ? stringToRegexp(text) : undefined);
+      setTextError(undefined);
+    } catch (e) {
+      if (e instanceof Error) {
+        setTextError(e.message);
+      } else console.error(e);
+    }
   }
 
-  function onLabelInput() {
-    if (getLabels().includes(getLabel() ?? ""))
-      throw new Error(`${getLabel()} already exists`);
+  function onLabelInput(e: InputEvent) {
+    if (!isHtml("input", e.target)) throw new TypeError();
+    const { value } = e.target;
+    setLabel(value);
+    if (getLabels().includes(value ?? ""))
+      setLabelError(`This transaction is already tagged with "${value}".`);
+    else setLabelError(undefined);
   }
 
   return (
     <form onSubmit={onSubmit} {...parent}>
+      <header>
+        <Show
+          when={getUntaggedTransaction()}
+          fallback={<p>There are no untagged transactions.</p>}
+        >
+          {(getUntaggedTransaction) => {
+            const transaction = getUntaggedTransaction();
+            return (
+              <aside>
+                <PartialTransaction
+                  transaction={transaction}
+                  regexp={getRegexp()}
+                />
+              </aside>
+            );
+          }}
+        </Show>
+      </header>
+      <hr />
       <fieldset>
         <label for="text">The text this tag matches&hellip;</label>
-        <TaggingInput
+        <input
+          value={getText() || ""}
+          type="text"
+          list="text-list"
           id="text"
           name="text"
-          bind={text}
           onInput={onTextInput}
+          aria-describedby="text-errors"
           required
-          options={tags.getTexts()}
         />
+        <DataList id="text-list" value={tags.getTexts()} />
+        <ErrorList id="text-errors">{getTextError()}</ErrorList>
       </fieldset>
       <fieldset>
         <label for="name">
@@ -78,27 +149,28 @@ export default function TaggingForm(props: Props) {
           </div>
         </label>
         <div role="group">
-          <TaggingInput
+          <input
+            value={getLabel() || ""}
+            type="text"
+            list="label-list"
             id="label"
             name="label"
-            bind={label}
             onInput={onLabelInput}
-            errors={labelErrors}
             aria-describedby="label-errors"
             required={getLabels().length === 0}
             placeholder={getLabels().join(", ")}
-            options={tags.getLabels()}
           />
-          <Icon value="add" onClick={onAddName} />
+          <DataList id="label-list" value={tags.getLabels()} />
+          <Icon value="add" onClick={onAddLabel} />
         </div>
-        <ErrorList id="label-errors">{getLabelErrors()}</ErrorList>
+        <ErrorList id="label-errors">{getLabelError()}</ErrorList>
         <Show when={getLabels().length > 0}>
           <ul>
             <For each={getLabels()}>
               {(name) => (
                 <li>
-                  <span>{name}</span>{" "}
-                  <Icon value="remove" onClick={[onRemoveName, name]} />
+                  <span>{name} </span>
+                  <Icon value="remove" onClick={[onRemoveLabel, name]} />
                 </li>
               )}
             </For>
@@ -106,6 +178,44 @@ export default function TaggingForm(props: Props) {
         </Show>
       </fieldset>
       <input type="submit" value="Next" />
+      <aside>
+        <h5>Other Matching Transactions</h5>
+        <ul>
+          <For each={getMatchingTransactions()}>
+            {(transaction) => (
+              <PartialTransaction
+                transaction={transaction}
+                regexp={getRegexp()}
+              />
+            )}
+          </For>
+        </ul>
+      </aside>
     </form>
+  );
+}
+
+function PartialTransaction(props: {
+  transaction: TransactionType;
+  regexp?: RegExp;
+}) {
+  return (
+    <>
+      <dl role="group">
+        <dt>Date</dt>
+        <dd>
+          <DateStamp value={props.transaction.date} />
+        </dd>
+        <dt>Amount</dt>
+        <dd>
+          <Amount value={props.transaction.amount} />
+        </dd>
+      </dl>
+      <q>
+        <Highlight value={props.regexp}>
+          {props.transaction.description}
+        </Highlight>
+      </q>
+    </>
   );
 }

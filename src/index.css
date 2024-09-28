@@ -1,3 +1,7 @@
 li[aria-invalid] {
   color: var(--pico-form-element-invalid-focus-color);
 }
+
+article article {
+  margin: 0;
+}

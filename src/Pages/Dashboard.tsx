@@ -8,15 +8,20 @@ export default function Dashboard() {
       <header>
         <h1>Dashboard</h1>
       </header>
-      <dl>
-        <dt>Quick Actions</dt>
-        <dd>
-          <Anchor modal={UploadModal}>Upload a new Bank Statement</Anchor>
-        </dd>
-        <dd>
-          <Anchor modal={TaggingModal}>Tag Untagged Transactions</Anchor>
-        </dd>
-      </dl>
+      <section>
+        <h3>Quick Actions</h3>
+        <ul>
+          <li>
+            <Anchor modal={UploadModal}>Upload a new Bank Statement</Anchor>
+          </li>
+          <li>
+            <Anchor modal={TaggingModal}>Tag Untagged Transactions</Anchor>
+          </li>
+        </ul>
+      </section>
+      <section>
+        <h1>Segments</h1>
+      </section>
     </article>
   );
 }

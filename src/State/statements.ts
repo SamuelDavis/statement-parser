@@ -1,4 +1,4 @@
-import { createRoot } from "solid-js";
+import { createMemo, createRoot } from "solid-js";
 import {
   hasProperties,
   isArray,
@@ -21,8 +21,9 @@ const statements = createRoot(() => {
     setStatements((statements) => [...statements, statement]);
   };
 
-  const getTransactions = () =>
-    getStatements().flatMap((statement) => statement.transactions);
+  const getTransactions = createMemo(() =>
+    getStatements().flatMap((statement) => statement.transactions),
+  );
 
   return { statementExists, addStatement, getStatements, getTransactions };
 });
