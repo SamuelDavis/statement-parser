@@ -1,17 +1,9 @@
-import {
-  batch,
-  createEffect,
-  createSignal,
-  For,
-  Show,
-  splitProps,
-} from "solid-js";
+import { batch, createSignal, For, Show, splitProps } from "solid-js";
 import { handle, stringToRegexp } from "../utilities.ts";
 import Icon from "../Components/Icon.tsx";
 import {
   ExtendProps,
   isHtml,
-  Transaction,
   Transaction as TransactionType,
 } from "../types.ts";
 import ErrorList from "../Components/ErrorList.tsx";
@@ -21,8 +13,7 @@ import derived from "../State/derived.ts";
 import DateStamp from "../Components/DateStamp.tsx";
 import Amount from "../Components/Amount.tsx";
 import Highlight from "../Components/Highlight.tsx";
-import statements from "../State/statements.ts";
-import createDebounce from "@solid-primitives/debounce";
+import { debounce } from "@solid-primitives/scheduled";
 
 type Props = ExtendProps<"form", {}, "children">;
 
@@ -36,20 +27,14 @@ export default function TaggingForm(props: Props) {
   const [getRegexp, setRegexp] = createSignal<undefined | RegExp>();
   const getUntaggedTransaction = (): undefined | TransactionType =>
     derived.getUntaggedTransactions()[0] ?? undefined;
-  const [getMatchingTransactions, setMatchingTransactions] = createSignal<
-    TransactionType[]
-  >([]);
-  const dbFn = createDebounce(
-    (regexp: undefined | RegExp, tx: Transaction[]) => {
-      return regexp
-        ? tx.filter((transaction) => !regexp.test(transaction.description))
-        : [];
-    },
-    200,
-  );
-  createEffect(() => {
-    dbFn(getRegexp(), statements.getTransactions());
-  });
+  const getMatchingTransactions = () => {
+    const regexp = getRegexp();
+    return regexp
+      ? derived
+          .getUntaggedTransactions()
+          .filter((transaction) => regexp.test(transaction.description))
+      : [];
+  };
 
   function onSubmit(event: SubmitEvent) {
     event.preventDefault();
@@ -134,7 +119,7 @@ export default function TaggingForm(props: Props) {
           list="text-list"
           id="text"
           name="text"
-          onInput={onTextInput}
+          onInput={debounce(onTextInput, 200)}
           aria-describedby="text-errors"
           required
         />
@@ -179,17 +164,22 @@ export default function TaggingForm(props: Props) {
       </fieldset>
       <input type="submit" value="Next" />
       <aside>
-        <h5>Other Matching Transactions</h5>
-        <ul>
-          <For each={getMatchingTransactions()}>
-            {(transaction) => (
-              <PartialTransaction
-                transaction={transaction}
-                regexp={getRegexp()}
-              />
-            )}
-          </For>
-        </ul>
+        <Show
+          when={getMatchingTransactions().length}
+          fallback={<h5>No Other Matching Transactions</h5>}
+        >
+          <h5>Other Matching Transactions</h5>
+          <ul>
+            <For each={getMatchingTransactions()}>
+              {(transaction) => (
+                <PartialTransaction
+                  transaction={transaction}
+                  regexp={getRegexp()}
+                />
+              )}
+            </For>
+          </ul>
+        </Show>
       </aside>
     </form>
   );
@@ -200,7 +190,7 @@ function PartialTransaction(props: {
   regexp?: RegExp;
 }) {
   return (
-    <>
+    <li>
       <dl role="group">
         <dt>Date</dt>
         <dd>
@@ -216,6 +206,6 @@ function PartialTransaction(props: {
           {props.transaction.description}
         </Highlight>
       </q>
-    </>
+    </li>
   );
 }

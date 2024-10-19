@@ -1,7 +1,3 @@
-import Anchor from "../Components/Anchor";
-import UploadModal from "../Upload/UploadModal.tsx";
-import TaggingModal from "../Tagging/TaggingModal.tsx";
-
 export default function Dashboard() {
   return (
     <article>
@@ -11,12 +7,8 @@ export default function Dashboard() {
       <section>
         <h3>Quick Actions</h3>
         <ul>
-          <li>
-            <Anchor modal={UploadModal}>Upload a new Bank Statement</Anchor>
-          </li>
-          <li>
-            <Anchor modal={TaggingModal}>Tag Untagged Transactions</Anchor>
-          </li>
+          <li></li>
+          <li></li>
         </ul>
       </section>
       <section>

@@ -1,6 +1,6 @@
 import { createMemo, createRoot } from "solid-js";
 import { createSignal, stringToRegexp } from "../utilities.ts";
-import { hasProperties, isArray } from "../types.ts";
+import { hasProperties, isArray, Transaction } from "../types.ts";
 
 type Tag = { text: string; label: string };
 const tags = createRoot(() => {
@@ -36,7 +36,19 @@ const tags = createRoot(() => {
   );
   const getRegexps = createMemo(() => getTexts().map(stringToRegexp));
 
-  return { getTags, addTags, getTexts, getLabels, getRegexps };
+  const getTagsByTransaction = (transaction: Transaction) =>
+    getTags().filter((tag) =>
+      stringToRegexp(tag.text).test(transaction.description),
+    );
+
+  return {
+    getTags,
+    addTags,
+    getTexts,
+    getLabels,
+    getRegexps,
+    getTagsByTransaction,
+  };
 });
 
 export default tags;

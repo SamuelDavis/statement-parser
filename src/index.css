@@ -1,7 +1,30 @@
+a[aria-current="true"] {
+  text-decoration: underline dotted !important;
+}
+
 li[aria-invalid] {
   color: var(--pico-form-element-invalid-focus-color);
 }
 
-article article {
+[disabled] {
+  opacity: 50%;
+}
+
+ul[role="list"] {
+  display: flex;
   margin: 0;
+  padding: 0;
+  gap: 1em;
+}
+
+ul[role="list"] > li {
+  list-style: none;
+}
+
+i {
+  vertical-align: text-bottom;
+}
+
+aside {
+  transition-property: height;
 }
