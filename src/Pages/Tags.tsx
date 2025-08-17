@@ -1,10 +1,10 @@
-import { createEffect, createSignal, For, Show } from "solid-js";
+import { createSignal, For, Show } from "solid-js";
 import DataList from "../Components/DataList";
 import HTMLIcon from "../Components/HTMLIcon";
 import TransactionsTable from "../Components/TransactionsTable";
 import { derived, tags } from "../state";
 import { assert, isString, type Targeted } from "../types";
-import { persist, useQueryString } from "../utilities";
+import { persist } from "../utilities";
 
 export default function Tags() {
   const [getSearch, setSearch] = persist(createSignal(""), {

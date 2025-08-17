@@ -1,5 +1,5 @@
 import { A } from "@solidjs/router";
-import { ErrorBoundary, For, Show, type ParentProps } from "solid-js";
+import { ErrorBoundary, For, type ParentProps, Show } from "solid-js";
 import { assert, isInstanceOf } from "../types";
 
 export default function Layout(props: ParentProps) {
@@ -40,11 +40,13 @@ function onError(error: unknown, reset: () => void) {
     <dialog open>
       <article>
         <header>
-          <button type="button" rel="prev" onClick={reset} />
+          <a href="#" type="button" rel="prev" onClick={reset} />
           <h1>{error.name}</h1>
         </header>
         <Show when={isInstanceOf(error, TypeError)}>
-          <button onClick={onClearStorage}>Clear Storage</button>
+          <button type="button" onClick={onClearStorage}>
+            Clear Storage
+          </button>
         </Show>
         <p>{error.message}</p>
         <details open>

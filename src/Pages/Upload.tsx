@@ -68,7 +68,7 @@ export default function Upload() {
   );
 }
 
-async function onFileChange(event: Targeted<InputEvent>): void {
+async function onFileChange(event: Targeted<InputEvent>): Promise<void> {
   const item = event.currentTarget.files?.item(0);
   if (!isInstanceOf(item, File)) {
     upload.setUpload(undefined);

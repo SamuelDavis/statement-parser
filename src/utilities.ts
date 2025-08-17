@@ -1,17 +1,6 @@
 import { useParams, useSearchParams } from "@solidjs/router";
-import {
-  type AnyKey,
-  isArray,
-  isString,
-  isFunction,
-  isNonNullable,
-} from "./types";
-import {
-  createEffect,
-  type Accessor,
-  type Setter,
-  type Signal,
-} from "solid-js";
+import { createEffect, type Signal } from "solid-js";
+import { type AnyKey, isArray, isString } from "./types";
 
 export function undefineFalsy<T>(value: T): undefined | T {
   if (isArray(value)) return value.length > 0 ? value : undefined;
@@ -74,38 +63,4 @@ export function persist<T>(
     }
   }
   return signal;
-}
-
-export function useQueryString(key = "q"): Signal<string> {
-  const [searchParams, setSearchParams] =
-    useSearchParams<{ [K in typeof key]: string }>();
-  const get: Accessor<string> = () => searchParams[key] ?? "";
-  const set: Setter<string> = (value) => {
-    const newValue = isFunction(value) ? value(get()) : value;
-    setSearchParams({ [key]: newValue });
-    return newValue;
-  };
-  return [get, set];
-}
-export function useQueryBoolean(key: string, truthy = "true"): Signal<boolean> {
-  const [searchParams, setSearchParams] =
-    useSearchParams<{ [K in typeof key]: string }>();
-  const get: Accessor<boolean> = () => searchParams[key] === truthy;
-  const set: Setter<boolean> = (value) => {
-    const newValue = isFunction(value) ? value(get()) : value;
-    setSearchParams({ [key]: newValue ? truthy : null });
-    return newValue;
-  };
-  return [get, set];
-}
-export function useQuery<T>({ key: string }): Signal<T> {
-  const [searchParams, setSearchParams] =
-    useSearchParams<{ [K in typeof key]: string }>();
-  const get: Accessor<T> = () => searchParams[key] ?? "";
-  const set: Setter<T> = (value) => {
-    const newValue = isFunction(value) ? value(get()) : value;
-    setSearchParams({ [key]: newValue });
-    return newValue;
-  };
-  return [get, set];
 }
