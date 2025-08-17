@@ -1,11 +1,7 @@
-import type { ChartProps } from "solid-chartjs";
 import { createEffect, createMemo, createRoot, createSignal } from "solid-js";
 import {
   assert,
   type FieldMapping,
-  Flags,
-  type GroupBy,
-  groupBy,
   isArray,
   isInstanceOf,
   isNumber,
@@ -20,6 +16,7 @@ import {
   tagFields,
   transactionFields,
   type Upload,
+  isBoolean,
 } from "./types";
 import { persist } from "./utilities";
 
@@ -131,10 +128,15 @@ export const tags = createRoot(() => {
       assert(isArray, value);
       return value.map((value) => {
         assert(isObject, value, tagFields);
-        const { value: label, regexp } = value;
+        const { value: label, regexp, ignore } = value;
         assert(isString, label);
         assert(isString, regexp);
-        return { value: label, regexp: new RegExp(regexp, RegExpFlags) };
+        assert(isBoolean, ignore);
+        return {
+          value: label,
+          regexp: new RegExp(regexp, RegExpFlags),
+          ignore,
+        };
       });
     },
   });
@@ -144,10 +146,8 @@ export const tags = createRoot(() => {
   function matching(transaction: Transaction): Tag[] {
     return get().filter((tag) => transaction.description.match(tag.regexp));
   }
-  function changeValue(tag: Tag, value: Tag["value"]): void {
-    set((tags) =>
-      tags.map((t) => (t.value === tag.value ? { ...t, value } : t)),
-    );
+  function update(tag: Tag, value: Tag): void {
+    set((tags) => tags.map((t) => (t.value === tag.value ? value : t)));
   }
   const getSources = createMemo((): Tag["regexp"]["source"][] => {
     return get().map((tag) => tag.regexp.source);
@@ -156,7 +156,7 @@ export const tags = createRoot(() => {
     return get().map((tag) => tag.value);
   });
 
-  return { get, add, matching, getSources, getValues, changeValue };
+  return { get, add, matching, getSources, getValues, changeValue: update };
 });
 
 export const derived = createRoot(() => {
@@ -191,99 +191,4 @@ export const derived = createRoot(() => {
   }
 
   return { getTransactions, getUntaggedTransactions };
-});
-
-export const app = createRoot(() => {
-  const [getGroupBy, setGroupBy] = createSignal<GroupBy>(groupBy[0]);
-  const [getFilterByTag, setFilterByTag] =
-    createSignal<Tag["regexp"]["source"]>("");
-
-  const getRegexp = () => {
-    const source = getFilterByTag();
-    return source === "" ? undefined : new RegExp(source, Flags);
-  };
-
-  const getTransactionsFilteredByTag = createMemo(() => {
-    const transactions = derived.getTransactions();
-    const regexp = getRegexp();
-    return regexp === undefined
-      ? transactions
-      : transactions.filter((tx) => tx.description.match(regexp));
-  });
-
-  const getTransactionsGroupedBy = createMemo(() => {
-    const groupBy = getGroupBy();
-    return getTransactionsFilteredByTag().reduce<Record<string, Transaction[]>>(
-      (acc, transaction) => {
-        const key = groupByTransform(groupBy, transaction.date).toISOString();
-        acc[key] = acc[key] ?? [];
-        acc[key].push(transaction);
-        return acc;
-      },
-      {},
-    );
-  });
-
-  const getTableData = createMemo(() => {
-    let last = 0;
-    return Object.entries(getTransactionsGroupedBy())
-      .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
-      .map(([timestamp, transactions]) => {
-        const groupBy = new Date(timestamp);
-        const total = transactions.reduce(
-          (acc, transaction) => acc + transaction.amount,
-          0,
-        );
-        const change = total - last;
-        last = total;
-        return {
-          groupBy,
-          total,
-          change,
-          transactions,
-        };
-      })
-      .reverse();
-  });
-
-  const getChartData = (): ChartProps["data"] => {
-    const transactions = getTableData()
-      .map((v) => ({
-        ...v,
-        label: v.groupBy.toDateString(),
-      }))
-      .reverse();
-    return {
-      labels: transactions.map((t) => t.label),
-      datasets: [
-        {
-          label: "total",
-          data: transactions.map((v) => v.total),
-          backgroundColor(ctx: any) {
-            const current = transactions[ctx.index]?.total ?? 0;
-            const prev = transactions[ctx.index - 1]?.total ?? current;
-            return current >= prev ? "green" : "red";
-          },
-          segment: {
-            borderColor(ctx: any) {
-              const current = ctx.p0.y;
-              const prev = ctx.p1.y;
-              return current >= prev ? "green" : "red";
-            },
-          },
-        },
-      ],
-    };
-  };
-
-  function groupByTransform(groupBy: GroupBy, date: Date): Date {
-    const ret = new Date(date);
-    let day = date.getDate();
-    if (groupBy === "month") day = 1;
-    if (groupBy === "week") day = Math.floor(date.getDate() / 7) * 7 + 1;
-    ret.setDate(day);
-    return ret;
-  }
-
-  return { setGroupBy, setFilterByTag, getTableData, getChartData };
 });

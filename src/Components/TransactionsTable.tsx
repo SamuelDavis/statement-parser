@@ -69,7 +69,30 @@ export default function TransactionsTable(
         </thead>
       </Show>
       <thead>
-        <For each={transactionFields}>{(field) => <th>{field}</th>}</For>
+        <tr>
+          <th colspan={transactionFields.length}>
+            <p>
+              <output>{getTransactions().length}</output> transactions with a
+              value of{" "}
+              <HTMLNumber
+                value={getTransactions()
+                  .filter((transaction) => {
+                    const matching = tags.matching(transaction);
+                    return (
+                      matching.length === 0 ||
+                      matching.some((tag) => !tag.ignore)
+                    );
+                  })
+                  .reduce((acc, tx) => acc + tx.amount, 0)}
+              />{" "}
+              from <HTMLDate value={getTransactions().slice(-1)[0].date} /> to{" "}
+              <HTMLDate value={getTransactions()[0].date} />.
+            </p>
+          </th>
+        </tr>
+        <tr>
+          <For each={transactionFields}>{(field) => <th>{field}</th>}</For>
+        </tr>
       </thead>
       <tbody>
         <For each={getTransactions()}>
@@ -115,7 +138,9 @@ export default function TransactionsTable(
                               <For each={get()}>
                                 {(tag) => (
                                   <li>
-                                    <A href={`/tags?q=${tag.value}`}>
+                                    <A
+                                      href={`/tags?q=${JSON.stringify(tag.value)}`}
+                                    >
                                       {tag.value}
                                     </A>
                                   </li>

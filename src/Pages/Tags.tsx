@@ -46,8 +46,13 @@ export default function Tags() {
             event.preventDefault();
             const data = new FormData(event.currentTarget);
             const value = data.get("value")?.toString();
+            const ignore = data.get("ignore")?.toString() === "on";
             assert(isString, value);
-            tags.changeValue(tag, value);
+            tags.changeValue(tag, {
+              ...tag,
+              value,
+              ignore,
+            });
             setIsEditing(false);
           }
 
@@ -64,6 +69,14 @@ export default function Tags() {
                   }
                 >
                   <form onSubmit={onSave}>
+                    <label>
+                      <span>Omit from Calculations</span>
+                      <input
+                        type="checkbox"
+                        name="ignore"
+                        checked={tag.ignore}
+                      />
+                    </label>
                     <fieldset role="group">
                       <button type="submit">
                         <HTMLIcon type="check" />

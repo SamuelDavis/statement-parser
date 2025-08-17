@@ -20,9 +20,10 @@ export default function Sandbox() {
     const data = new FormData(event.currentTarget);
     const search = undefineFalsy(data.get("search")?.toString());
     const text = undefineFalsy(data.get("text")?.toString());
+    const ignore = data.get("ignore")?.toString() === "on";
     if (!search || !text) return;
 
-    const tag: Tag = { regexp: new RegExp(search, Flags), value: text };
+    const tag: Tag = { regexp: new RegExp(search, Flags), value: text, ignore };
     if (!getFirstUntagged().description.match(tag.regexp)) {
       alert(`Search not found in transaction description.`);
       return;
@@ -41,8 +42,12 @@ export default function Sandbox() {
     <article>
       <h1>Tagging</h1>
       <section>
-        <h2>Search & Tag Transactions</h2>
         <form onSubmit={onSubmit}>
+          <h2>Search & Tag Transactions</h2>
+          <label>
+            <span>Omit from Calculations</span>
+            <input type="checkbox" name="ignore" />
+          </label>
           <fieldset role="group">
             <input
               placeholder="search"

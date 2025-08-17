@@ -43,9 +43,10 @@ export type Match = { match: boolean; text: string };
 export type Tag = {
   regexp: RegExp;
   value: string;
+  ignore: boolean;
 };
 export type TagField = keyof Tag;
-export const tagFields: readonly TagField[] = ["regexp", "value"];
+export const tagFields: readonly TagField[] = ["regexp", "value", "ignore"];
 export const Flags = "gi" as const;
 export type ComplexTransaction = Transaction & {
   matches: Match[];

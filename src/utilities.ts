@@ -52,8 +52,9 @@ export function persist<T>(
       const [searchParams, setSearchParams] = useSearchParams();
       createEffect(() => {
         const value = encode(get());
-        if (value.replace(/(^"|"$)/g, "").length > 0)
-          setSearchParams({ [key]: value });
+        setSearchParams({
+          [key]: value.replace(/(^"|"$)/g, "").length > 0 ? value : null,
+        });
       });
       createEffect(() => {
         const value = searchParams[key];

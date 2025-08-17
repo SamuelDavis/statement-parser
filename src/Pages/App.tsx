@@ -1,11 +1,149 @@
-import { Line } from "solid-chartjs";
-import { For } from "solid-js";
+import { type ChartProps, Line } from "solid-chartjs";
+import { createMemo, createSignal, For } from "solid-js";
 import HTMLDate from "../Components/HTMLDate";
 import HTMLNumber from "../Components/HTMLNumber";
-import { app, tags } from "../state";
-import { assert, groupBy, isValueOf, type Targeted } from "../types";
+import TransactionsTable from "../Components/TransactionsTable";
+import { derived, tags } from "../state";
+import {
+  assert,
+  Flags,
+  type GroupBy,
+  groupBy,
+  isValueOf,
+  type Tag,
+  type Targeted,
+  type Transaction,
+} from "../types";
+import { persist } from "../utilities";
 
 export default function App() {
+  const [getGroupBy, setGroupBy] = persist(createSignal<GroupBy>("week"), {
+    key: "group-by",
+    driver: "query",
+  });
+  const [getFilterByTag, setFilterByTag] = persist(
+    createSignal<Tag["regexp"]["source"]>(""),
+    { key: "filter-by", driver: "query" },
+  );
+
+  const getRegexp = () => {
+    const source = getFilterByTag();
+    return source === "" ? undefined : new RegExp(source, Flags);
+  };
+
+  const getTransactionsFilteredByTag = createMemo(() => {
+    const transactions = derived.getTransactions().map((transaction) => ({
+      ...transaction,
+      tags: tags.matching(transaction),
+    }));
+    const regexp = getRegexp();
+    return regexp === undefined
+      ? transactions
+      : transactions.filter((tx) => tx.description.match(regexp));
+  });
+
+  const getTransactionsGroupedBy = createMemo(() => {
+    type Acc = Record<string, ReturnType<typeof getTransactionsFilteredByTag>>;
+    const groupBy = getGroupBy();
+    return getTransactionsFilteredByTag().reduce<Acc>((acc, transaction) => {
+      const key = groupByTransform(groupBy, transaction.date).toISOString();
+      acc[key] = acc[key] ?? [];
+      acc[key].push(transaction);
+      return acc;
+    }, {});
+  });
+
+  const getTableData = createMemo(() => {
+    let last = 0;
+    return Object.entries(getTransactionsGroupedBy())
+      .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
+      .map(([timestamp, transactions]) => {
+        const groupBy = new Date(timestamp);
+        const total = transactions
+          .filter((transaction) => {
+            return transaction.tags.length === 0
+              ? true
+              : transaction.tags.some((tag) => !tag.ignore);
+          })
+          .reduce((acc, transaction) => acc + transaction.amount, 0);
+        const change = total - last;
+        last = total;
+        return {
+          groupBy,
+          total,
+          change,
+          transactions,
+        };
+      })
+      .reverse();
+  });
+
+  const getChartData = (): ChartProps["data"] => {
+    const transactions = getTableData()
+      .map((v) => ({
+        ...v,
+        label: v.groupBy.toDateString(),
+      }))
+      .reverse();
+    return {
+      labels: transactions.map((t) => t.label),
+      datasets: [
+        {
+          label: "total",
+          data: transactions.map((v) => v.total),
+          backgroundColor(ctx: any) {
+            const current = transactions[ctx.index]?.total ?? 0;
+            const prev = transactions[ctx.index - 1]?.total ?? current;
+            return current >= prev ? "green" : "red";
+          },
+          segment: {
+            borderColor(ctx: any) {
+              const current = ctx.p0.y;
+              const prev = ctx.p1.y;
+              return current >= prev ? "green" : "red";
+            },
+          },
+        },
+        {
+          label: "average",
+          data: transactions.map((v, i, a) => {
+            const current = v;
+            const prev = a[i - 1] ?? current;
+            return (current.total + prev.total) / 5;
+          }),
+          segment: {
+            backgroundColor: "yellow",
+            borderColor: "yellow",
+          },
+        },
+      ],
+    };
+  };
+
+  function groupByTransform(groupBy: GroupBy, date: Date): Date {
+    const ret = new Date(date);
+    let day = date.getDate();
+    if (groupBy === "month") day = 1;
+    if (groupBy === "week") day = Math.floor(date.getDate() / 7) * 7 + 1;
+    ret.setDate(day);
+    return ret;
+  }
+
+  function onSubmit(event: Targeted<SubmitEvent>) {
+    event.preventDefault();
+  }
+
+  function onGroupBy(event: Targeted<InputEvent, HTMLSelectElement>): void {
+    const value = event.currentTarget.value;
+    assert(isValueOf, value, groupBy);
+    setGroupBy(value);
+  }
+
+  function onFilterByTag(event: Targeted<InputEvent, HTMLSelectElement>): void {
+    const value = event.currentTarget.value;
+    setFilterByTag(value);
+  }
+
   return (
     <article>
       <form onSubmit={onSubmit}>
@@ -34,7 +172,7 @@ export default function App() {
       <details open>
         <summary>Graph</summary>
         <Line
-          data={app.getChartData()}
+          data={getChartData()}
           options={{
             responsive: true,
             maintainAspectratio: false,
@@ -43,81 +181,16 @@ export default function App() {
       </details>
       <details>
         <summary>Table</summary>
-        <table>
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th># Transactions</th>
-              <th>Change</th>
-              <th>Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            <For each={app.getTableData()}>
-              {(value) => (
-                <tr>
-                  <td>
-                    <HTMLDate value={value.groupBy} />
-                  </td>
-                  <td>
-                    <HTMLNumber
-                      value={value.transactions.length}
-                      currency={false}
-                      precision={0}
-                    />
-                  </td>
-                  <td>
-                    <HTMLNumber value={value.change} />
-                  </td>
-                  <td>
-                    <HTMLNumber value={value.total} />
-                  </td>
-                </tr>
-              )}
-            </For>
-          </tbody>
-        </table>
+        <TransactionsTable
+          transactions={getTableData().flatMap((value) => value.transactions)}
+        />
       </details>
       <details>
         <summary>List</summary>
-        <For each={app.getTableData()}>
-          {(value) => (
-            <section>
-              <header>
-                <h1>{value.groupBy.toLocaleDateString()}</h1>
-              </header>
-              <dl>
-                <dt>total</dt>
-                <dd>
-                  <HTMLNumber value={value.total} />
-                </dd>
-                <dt>change</dt>
-                <dd>
-                  <HTMLNumber value={value.change} />
-                </dd>
-              </dl>
-              <details>
-                <summary>Transactions ({value.transactions.length})</summary>
-                <pre>{JSON.stringify(value.transactions, null, 2)}</pre>
-              </details>
-            </section>
-          )}
+        <For each={getTableData()}>
+          {(value) => <TransactionsTable transactions={value.transactions} />}
         </For>
       </details>
     </article>
   );
-}
-
-function onSubmit(event: Targeted<SubmitEvent>) {
-  event.preventDefault();
-}
-
-function onGroupBy(event: Targeted<InputEvent, HTMLSelectElement>): void {
-  const value = event.currentTarget.value;
-  assert(isValueOf, value, groupBy);
-  app.setGroupBy(value);
-}
-
-function onFilterByTag(event: Targeted<InputEvent, HTMLSelectElement>): void {
-  app.setFilterByTag(event.currentTarget.value);
 }
