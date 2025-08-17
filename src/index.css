@@ -1,0 +1,19 @@
+article {
+  min-width: min-content;
+}
+
+label {
+  display: flex;
+  gap: 1em;
+  align-items: center;
+}
+
+.currency::before {
+  content: "$";
+}
+.positive {
+  color: green;
+}
+.negative {
+  color: red;
+}
