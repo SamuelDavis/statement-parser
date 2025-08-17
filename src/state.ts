@@ -260,7 +260,7 @@ export const app = createRoot(() => {
           label: "total",
           data: transactions.map((v) => v.total),
           backgroundColor(ctx: any) {
-            const current = transactions[ctx.index].total;
+            const current = transactions[ctx.index]?.total ?? 0;
             const prev = transactions[ctx.index - 1]?.total ?? current;
             return current >= prev ? "green" : "red";
           },
