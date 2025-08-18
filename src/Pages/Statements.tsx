@@ -8,7 +8,7 @@ export default function App() {
   return (
     <article>
       <h1>Statements</h1>
-      <For each={statements.get()}>
+      <For each={statements.get()} fallback={<p>No statements available.</p>}>
         {(statement) => (
           <article>
             <h2>{statement.name}</h2>

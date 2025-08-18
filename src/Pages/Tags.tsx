@@ -35,7 +35,7 @@ export default function Tags() {
         />
         <DataList id="tag-values" options={tags.getValues()} />
       </header>
-      <For each={getTags()}>
+      <For each={getTags()} fallback={<p>No tags available.</p>}>
         {(tag) => {
           const [getIsEditing, setIsEditing] = createSignal(false);
           const transactions = derived.getTransactions({
@@ -65,6 +65,9 @@ export default function Tags() {
                     <h2>
                       <HTMLIcon type="edit" onClick={[setIsEditing, true]} />
                       <span>{tag.value}</span>
+                      <Show when={tag.ignore}>
+                        <small>(ignored)</small>
+                      </Show>
                     </h2>
                   }
                 >

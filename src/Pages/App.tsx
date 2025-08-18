@@ -1,7 +1,5 @@
 import { type ChartProps, Line } from "solid-chartjs";
 import { createMemo, createSignal, For } from "solid-js";
-import HTMLDate from "../Components/HTMLDate";
-import HTMLNumber from "../Components/HTMLNumber";
 import TransactionsTable from "../Components/TransactionsTable";
 import { derived, tags } from "../state";
 import {
@@ -12,7 +10,6 @@ import {
   isValueOf,
   type Tag,
   type Targeted,
-  type Transaction,
 } from "../types";
 import { persist } from "../utilities";
 

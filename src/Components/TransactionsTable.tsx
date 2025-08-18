@@ -47,6 +47,8 @@ export default function TransactionsTable(
     setUntaggedOnly(event.currentTarget.checked);
   }
 
+  if (getTransactions().length === 0) return <p>No transactions available.</p>;
+
   return (
     <table {...parent}>
       <Show when={local.controls}>

@@ -3,6 +3,7 @@ import {
   assert,
   type FieldMapping,
   isArray,
+  isBoolean,
   isInstanceOf,
   isNumber,
   isObject,
@@ -16,7 +17,6 @@ import {
   tagFields,
   transactionFields,
   type Upload,
-  isBoolean,
 } from "./types";
 import { persist } from "./utilities";
 
