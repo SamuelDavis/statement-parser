@@ -2,8 +2,8 @@ import { createEffect, createMemo, createRoot, createSignal } from "solid-js";
 import {
   assert,
   type FieldMapping,
+  Flags,
   isArray,
-  isBoolean,
   isInstanceOf,
   isNumber,
   isObject,
@@ -12,6 +12,7 @@ import {
   type Statement,
   statementFields,
   type Tag,
+  type TaggedTransaction,
   type Transaction,
   type TransactionField,
   tagFields,
@@ -128,14 +129,12 @@ export const tags = createRoot(() => {
       assert(isArray, value);
       return value.map((value) => {
         assert(isObject, value, tagFields);
-        const { value: label, regexp, ignore } = value;
+        const { value: label, regexp } = value;
         assert(isString, label);
         assert(isString, regexp);
-        assert(isBoolean, ignore);
         return {
           value: label,
           regexp: new RegExp(regexp, RegExpFlags),
-          ignore,
         };
       });
     },
@@ -144,7 +143,7 @@ export const tags = createRoot(() => {
     set((tags) => [...tags, tag]);
   }
   function matching(transaction: Transaction): Tag[] {
-    return get().filter((tag) => transaction.description.match(tag.regexp));
+    return getTags().filter((tag) => transaction.description.match(tag.regexp));
   }
   function update(tag: Tag, value: Tag): void {
     set((tags) => tags.map((t) => (t.value === tag.value ? value : t)));
@@ -156,19 +155,55 @@ export const tags = createRoot(() => {
     return get().map((tag) => tag.value);
   });
 
-  return { get, add, matching, getSources, getValues, changeValue: update };
+  function getTags(): Tag[] {
+    const map: Record<Tag["value"], Tag["regexp"]["source"][]> = {};
+    for (const tag of get()) {
+      const sources = map[tag.value] ?? [];
+      if (!sources.includes(tag.regexp.source)) sources.push(tag.regexp.source);
+      map[tag.value] = sources;
+    }
+
+    return Object.entries(map).map(
+      ([value, sources]): Tag => ({
+        value,
+        regexp: new RegExp(sources.join("|"), Flags),
+      }),
+    );
+  }
+
+  return {
+    get: getTags,
+    add,
+    matching,
+    getSources,
+    getValues,
+    changeValue: update,
+  };
 });
 
 export const derived = createRoot(() => {
-  const getAllTransactions = createMemo((): Transaction[] => {
+  const getTransactions = createMemo((): Transaction[] => {
     return statements
       .get()
       .flatMap((statement) => statement.transactions)
       .sort((a, b) => b.date.getTime() - a.date.getTime());
   });
 
+  const getTaggedTransactions = createMemo((): TaggedTransaction[] => {
+    const transactions = getTransactions();
+    const allTags = tags.get();
+    return transactions.map(
+      (transaction): TaggedTransaction => ({
+        ...transaction,
+        tags: allTags.filter((tag) =>
+          transaction.description.match(tag.regexp),
+        ),
+      }),
+    );
+  });
+
   const getUntaggedTransactions = createMemo((): Transaction[] => {
-    const allTransactions = getAllTransactions();
+    const allTransactions = getTransactions();
     const allTags = tags.get();
     return allTransactions.filter(
       (transaction) =>
@@ -176,19 +211,22 @@ export const derived = createRoot(() => {
     );
   });
 
-  function getTransactions(
+  function findTransactions(
     args: Partial<{ matching?: RegExp; untagged: boolean }> = {},
   ): Transaction[] {
     const { matching, untagged } = args;
-    const transactions = untagged
-      ? getUntaggedTransactions()
-      : getAllTransactions();
+
+    let transactions = getTaggedTransactions();
     if (isInstanceOf(matching, RegExp))
-      return transactions.filter((transaction) =>
+      transactions = transactions.filter((transaction) =>
         transaction.description.match(matching),
+      );
+    if (untagged)
+      transactions = transactions.filter(
+        (transaction) => transaction.tags.length === 0,
       );
     return transactions;
   }
 
-  return { getTransactions, getUntaggedTransactions };
+  return { findTransactions, getUntaggedTransactions, getTaggedTransactions };
 });

@@ -10,9 +10,13 @@ export default function Sandbox() {
     key: "q",
     driver: "query",
   });
+  const [getUntaggedOnly, setUntaggedOnly] = createSignal(false);
   const getRegexp = () => undefineFalsy(new RegExp(getSearch(), Flags));
   const getTransactions = () =>
-    derived.getTransactions({ matching: getRegexp() });
+    derived.findTransactions({
+      matching: getRegexp(),
+      untagged: getUntaggedOnly(),
+    });
   const getFirstUntagged = () => derived.getUntaggedTransactions()[0];
 
   function onSubmit(event: Targeted<SubmitEvent>): void {
@@ -20,10 +24,9 @@ export default function Sandbox() {
     const data = new FormData(event.currentTarget);
     const search = undefineFalsy(data.get("search")?.toString());
     const text = undefineFalsy(data.get("text")?.toString());
-    const ignore = data.get("ignore")?.toString() === "on";
     if (!search || !text) return;
 
-    const tag: Tag = { regexp: new RegExp(search, Flags), value: text, ignore };
+    const tag: Tag = { regexp: new RegExp(search, Flags), value: text };
     if (!getFirstUntagged().description.match(tag.regexp)) {
       alert(`Search not found in transaction description.`);
       return;
@@ -38,16 +41,16 @@ export default function Sandbox() {
     setSearch(event.currentTarget.value);
   }
 
+  function onUntaggedOnly(event: Targeted<InputEvent>): void {
+    setUntaggedOnly(event.currentTarget.checked);
+  }
+
   return (
     <article>
       <h1>Tagging</h1>
       <section>
         <form onSubmit={onSubmit}>
           <h2>Search & Tag Transactions</h2>
-          <label>
-            <span>Omit from Calculations</span>
-            <input type="checkbox" name="ignore" />
-          </label>
           <fieldset role="group">
             <input
               placeholder="search"
@@ -84,7 +87,17 @@ export default function Sandbox() {
       </section>
       <hr />
       <section>
-        <h2>Transactions</h2>
+        <header role="group">
+          <h2>Transactions</h2>
+          <label>
+            <span>Untagged Only</span>
+            <input
+              type="checkbox"
+              onInput={onUntaggedOnly}
+              checked={getUntaggedOnly()}
+            />
+          </label>
+        </header>
         <TransactionsTable
           controls={true}
           highlight={getRegexp()}

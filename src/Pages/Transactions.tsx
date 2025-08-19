@@ -10,7 +10,7 @@ export default function Transactions() {
     driver: "query",
   });
   const getTransactions = () =>
-    derived.getTransactions({
+    derived.findTransactions({
       matching: undefineFalsy(new RegExp(getSearch(), Flags)),
     });
 

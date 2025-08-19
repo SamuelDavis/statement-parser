@@ -50,15 +50,16 @@ export function persist<T>(
     }
     case "query": {
       const [searchParams, setSearchParams] = useSearchParams();
+      const value = searchParams[key];
+      if (isString(value)) set(decode(value));
       createEffect(() => {
         const value = encode(get());
         setSearchParams({
-          [key]: value.replace(/(^"|"$)/g, "").length > 0 ? value : null,
+          [key]:
+            isString(value) && value.replace(/(^"|"$)/g, "").length > 0
+              ? value
+              : null,
         });
-      });
-      createEffect(() => {
-        const value = searchParams[key];
-        if (isString(value)) set(decode(value));
       });
       break;
     }

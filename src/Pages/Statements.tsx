@@ -3,6 +3,7 @@ import HTMLDate from "../Components/HTMLDate";
 import HTMLNumber from "../Components/HTMLNumber";
 import { statements } from "../state";
 import { transactionFields } from "../types";
+import TransactionsSummary from "../Components/TransactionsSummary";
 
 export default function App() {
   return (
@@ -16,7 +17,9 @@ export default function App() {
               <HTMLDate value={statement.date} />
             </h3>
             <details open>
-              <summary>Transactions</summary>
+              <summary>
+                <TransactionsSummary transactions={statement.transactions} />
+              </summary>
               <table>
                 <thead>
                   <tr>

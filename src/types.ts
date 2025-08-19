@@ -43,10 +43,9 @@ export type Match = { match: boolean; text: string };
 export type Tag = {
   regexp: RegExp;
   value: string;
-  ignore: boolean;
 };
 export type TagField = keyof Tag;
-export const tagFields: readonly TagField[] = ["regexp", "value", "ignore"];
+export const tagFields: readonly TagField[] = ["regexp", "value"];
 export const Flags = "gi" as const;
 export type ComplexTransaction = Transaction & {
   matches: Match[];
@@ -54,6 +53,9 @@ export type ComplexTransaction = Transaction & {
 };
 export const groupBy = ["day", "week", "month"] as const;
 export type GroupBy = (typeof groupBy)[number];
+export type TaggedTransaction = Transaction & {
+  tags: Tag[];
+};
 
 /***********
  * UTILITY *

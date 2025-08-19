@@ -5,6 +5,7 @@ import TransactionsTable from "../Components/TransactionsTable";
 import { derived, tags } from "../state";
 import { assert, isString, type Targeted } from "../types";
 import { persist } from "../utilities";
+import TransactionsSummary from "../Components/TransactionsSummary";
 
 export default function Tags() {
   const [getSearch, setSearch] = persist(createSignal(""), {
@@ -38,7 +39,7 @@ export default function Tags() {
       <For each={getTags()} fallback={<p>No tags available.</p>}>
         {(tag) => {
           const [getIsEditing, setIsEditing] = createSignal(false);
-          const transactions = derived.getTransactions({
+          const transactions = derived.findTransactions({
             matching: tag.regexp,
           });
 
@@ -46,13 +47,8 @@ export default function Tags() {
             event.preventDefault();
             const data = new FormData(event.currentTarget);
             const value = data.get("value")?.toString();
-            const ignore = data.get("ignore")?.toString() === "on";
             assert(isString, value);
-            tags.changeValue(tag, {
-              ...tag,
-              value,
-              ignore,
-            });
+            tags.changeValue(tag, { ...tag, value });
             setIsEditing(false);
           }
 
@@ -65,21 +61,10 @@ export default function Tags() {
                     <h2>
                       <HTMLIcon type="edit" onClick={[setIsEditing, true]} />
                       <span>{tag.value}</span>
-                      <Show when={tag.ignore}>
-                        <small>(ignored)</small>
-                      </Show>
                     </h2>
                   }
                 >
                   <form onSubmit={onSave}>
-                    <label>
-                      <span>Omit from Calculations</span>
-                      <input
-                        type="checkbox"
-                        name="ignore"
-                        checked={tag.ignore}
-                      />
-                    </label>
                     <fieldset role="group">
                       <button type="submit">
                         <HTMLIcon type="check" />
@@ -98,7 +83,7 @@ export default function Tags() {
               </header>
               <details>
                 <summary>
-                  Transactions (<output>{transactions.length}</output>)
+                  <TransactionsSummary transactions={transactions} />
                 </summary>
                 <TransactionsTable transactions={transactions} />
               </details>

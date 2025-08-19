@@ -1,96 +1,86 @@
+import { A } from "@solidjs/router";
 import { type ChartProps, Line } from "solid-chartjs";
 import { createMemo, createSignal, For } from "solid-js";
+import TransactionsSummary from "../Components/TransactionsSummary";
 import TransactionsTable from "../Components/TransactionsTable";
 import { derived, tags } from "../state";
 import {
   assert,
-  Flags,
   type GroupBy,
   groupBy,
   isValueOf,
   type Tag,
   type Targeted,
+  type Transaction,
 } from "../types";
-import { persist } from "../utilities";
+import { persist, undefineFalsy } from "../utilities";
 
 export default function App() {
-  const [getGroupBy, setGroupBy] = persist(createSignal<GroupBy>("week"), {
+  if (!undefineFalsy(derived.getTaggedTransactions()))
+    return (
+      <article>
+        <p>
+          No data available. Try <A href="/upload">uploading</A> some.
+        </p>
+      </article>
+    );
+
+  const [getGroupBy, setGroupBy] = persist(createSignal<GroupBy>(groupBy[1]), {
     key: "group-by",
     driver: "query",
   });
-  const [getFilterByTag, setFilterByTag] = persist(
-    createSignal<Tag["regexp"]["source"]>(""),
-    { key: "filter-by", driver: "query" },
+  const [getFilterByTags, setFilterByTags] = persist(
+    createSignal<Tag["value"][]>([]),
+    {
+      key: "filter-by-tag",
+      driver: "query",
+    },
   );
-
-  const getRegexp = () => {
-    const source = getFilterByTag();
-    return source === "" ? undefined : new RegExp(source, Flags);
-  };
-
-  const getTransactionsFilteredByTag = createMemo(() => {
-    const transactions = derived.getTransactions().map((transaction) => ({
-      ...transaction,
-      tags: tags.matching(transaction),
-    }));
-    const regexp = getRegexp();
-    return regexp === undefined
-      ? transactions
-      : transactions.filter((tx) => tx.description.match(regexp));
+  const getTransactionsFilteredBy = createMemo(() => {
+    const filterByTags = getFilterByTags();
+    const transactions = derived.getTaggedTransactions();
+    return undefineFalsy(filterByTags)
+      ? transactions.filter(
+          (transaction) =>
+            transaction.tags.some((tag) => filterByTags.includes(tag.value)) ||
+            (transaction.tags.length === 0 &&
+              filterByTags.includes("untagged")),
+        )
+      : transactions;
   });
 
   const getTransactionsGroupedBy = createMemo(() => {
-    type Acc = Record<string, ReturnType<typeof getTransactionsFilteredByTag>>;
     const groupBy = getGroupBy();
-    return getTransactionsFilteredByTag().reduce<Acc>((acc, transaction) => {
-      const key = groupByTransform(groupBy, transaction.date).toISOString();
-      acc[key] = acc[key] ?? [];
-      acc[key].push(transaction);
-      return acc;
-    }, {});
-  });
-
-  const getTableData = createMemo(() => {
-    let last = 0;
-    return Object.entries(getTransactionsGroupedBy())
-      .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
-      .map(([timestamp, transactions]) => {
-        const groupBy = new Date(timestamp);
-        const total = transactions
-          .filter((transaction) => {
-            return transaction.tags.length === 0
-              ? true
-              : transaction.tags.some((tag) => !tag.ignore);
-          })
-          .reduce((acc, transaction) => acc + transaction.amount, 0);
-        const change = total - last;
-        last = total;
-        return {
-          groupBy,
-          total,
-          change,
-          transactions,
-        };
-      })
-      .reverse();
-  });
-
-  const getChartData = (): ChartProps["data"] => {
-    const transactions = getTableData()
-      .map((v) => ({
-        ...v,
-        label: v.groupBy.toDateString(),
+    const map = new Map<Date, Transaction[]>();
+    for (const transaction of getTransactionsFilteredBy()) {
+      const date = groupByTransform(groupBy, transaction.date);
+      if (!map.has(date)) map.set(date, []);
+      map.get(date)?.push(transaction);
+    }
+    return Array.from(map.entries())
+      .map(([date, transactions]) => ({
+        date,
+        transactions,
       }))
       .reverse();
+  });
+
+  const getChartData = createMemo((): ChartProps["data"] => {
+    const groups = getTransactionsGroupedBy();
+    const totals = groups.map((group) =>
+      sum(group.transactions.map((v) => v.amount)),
+    );
+    const absolute = totals.map((_, i, a) => sum(a.slice(0, i)));
+
     return {
-      labels: transactions.map((t) => t.label),
+      labels: groups.map((group) => group.date.toLocaleDateString()),
       datasets: [
         {
-          label: "total",
-          data: transactions.map((v) => v.total),
+          label: "absolute",
+          data: absolute,
           backgroundColor(ctx: any) {
-            const current = transactions[ctx.index]?.total ?? 0;
-            const prev = transactions[ctx.index - 1]?.total ?? current;
+            const current = absolute[ctx.index] ?? 0;
+            const prev = absolute[ctx.index - 1] ?? current;
             return current >= prev ? "green" : "red";
           },
           segment: {
@@ -102,12 +92,8 @@ export default function App() {
           },
         },
         {
-          label: "average",
-          data: transactions.map((v, i, a) => {
-            const current = v;
-            const prev = a[i - 1] ?? current;
-            return (current.total + prev.total) / 5;
-          }),
+          label: "trend",
+          data: trend(absolute),
           segment: {
             backgroundColor: "yellow",
             borderColor: "yellow",
@@ -115,56 +101,73 @@ export default function App() {
         },
       ],
     };
-  };
+  });
 
-  function groupByTransform(groupBy: GroupBy, date: Date): Date {
-    const ret = new Date(date);
-    let day = date.getDate();
-    if (groupBy === "month") day = 1;
-    if (groupBy === "week") day = Math.floor(date.getDate() / 7) * 7 + 1;
-    ret.setDate(day);
-    return ret;
-  }
-
-  function onSubmit(event: Targeted<SubmitEvent>) {
+  function onSubmit(event: Targeted<SubmitEvent>): void {
     event.preventDefault();
   }
 
   function onGroupBy(event: Targeted<InputEvent, HTMLSelectElement>): void {
-    const value = event.currentTarget.value;
+    const { value } = event.currentTarget;
     assert(isValueOf, value, groupBy);
     setGroupBy(value);
   }
 
-  function onFilterByTag(event: Targeted<InputEvent, HTMLSelectElement>): void {
-    const value = event.currentTarget.value;
-    setFilterByTag(value);
+  function onFilterByTags(
+    event: Targeted<InputEvent, HTMLSelectElement>,
+  ): void {
+    setFilterByTags(
+      [...event.currentTarget.selectedOptions].map((option) => option.value),
+    );
+  }
+
+  function onFilterByAllTags(): void {
+    setFilterByTags(tags.getValues());
+  }
+
+  function onFilterByNoneTags(): void {
+    setFilterByTags([]);
   }
 
   return (
     <article>
       <form onSubmit={onSubmit}>
-        <div>
-          <label for="group-by">Group By</label>
-          <select name="group-by" id="group-by" onInput={onGroupBy}>
+        <label>
+          <span>Group By</span>
+          <select onInput={onGroupBy}>
             <For each={groupBy}>
-              {(value) => <option value={value}>{value}</option>}
+              {(value) => (
+                <option value={value} selected={getGroupBy() === value}>
+                  {value}
+                </option>
+              )}
             </For>
           </select>
-        </div>
-        <div>
-          <label for="filter-by-tag">Filter By Tag</label>
-          <select
-            name="filter-by-tag"
-            id="filter-by-tag"
-            onInput={onFilterByTag}
-          >
-            <option value="">None</option>
-            <For each={tags.get()}>
-              {(tag) => <option value={tag.regexp.source}>{tag.value}</option>}
-            </For>
-          </select>
-        </div>
+        </label>
+        <fieldset>
+          <label>
+            <span>Filter By Tags</span>
+            <select onInput={onFilterByTags} multiple>
+              <option value="untagged">untagged</option>
+              <For each={tags.getValues()}>
+                {(value) => (
+                  <option
+                    value={value}
+                    selected={getFilterByTags().includes(value)}
+                  >
+                    {value}
+                  </option>
+                )}
+              </For>
+            </select>
+          </label>
+          <button type="button" onClick={onFilterByAllTags}>
+            All
+          </button>
+          <button type="button" onClick={onFilterByNoneTags}>
+            None
+          </button>
+        </fieldset>
       </form>
       <details open>
         <summary>Graph</summary>
@@ -176,18 +179,31 @@ export default function App() {
           }}
         />
       </details>
-      <details>
-        <summary>Table</summary>
-        <TransactionsTable
-          transactions={getTableData().flatMap((value) => value.transactions)}
-        />
-      </details>
-      <details>
-        <summary>List</summary>
-        <For each={getTableData()}>
-          {(value) => <TransactionsTable transactions={value.transactions} />}
-        </For>
+      <details open>
+        <summary>
+          <TransactionsSummary transactions={getTransactionsFilteredBy()} />
+        </summary>
+        <TransactionsTable transactions={getTransactionsFilteredBy()} />
       </details>
     </article>
   );
+}
+
+function groupByTransform(groupBy: GroupBy, date: Date): Date {
+  const ret = new Date(date);
+  let day = date.getDate();
+  if (groupBy === "month") day = 1;
+  if (groupBy === "week") day = Math.floor(date.getDate() / 7) * 7 + 1;
+  ret.setDate(day);
+  return ret;
+}
+
+function trend(arr: number[], smooth = 3): number[] {
+  return arr.map((_, i, a) =>
+    sum(a.slice(Math.max(0, i - smooth), i + 1 + smooth)),
+  );
+}
+
+function sum(array: number[]): number {
+  return array.reduce((acc, n) => acc + n, 0) / array.length;
 }
