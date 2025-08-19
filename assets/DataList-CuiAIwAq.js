@@ -1,0 +1,1 @@
+import{k as l,t as s,l as i,i as e,c,F as m}from"./index-Dt_LWpRi.js";var u=s("<datalist>"),_=s("<option>");function d(o){const[n,p]=l(o,["options"]);return(()=>{var t=u();return i(t,p,!1,!0),e(t,c(m,{get each(){return n.options},children:a=>(()=>{var r=_();return r.value=a,e(r,a),r})()})),t})()}export{d as D};
