@@ -46,6 +46,7 @@ export type Tag = {
 };
 export type TagField = keyof Tag;
 export const tagFields: readonly TagField[] = ["regexp", "value"];
+export const untagged = "untagged" as const;
 export const Flags = "gi" as const;
 export type ComplexTransaction = Transaction & {
   matches: Match[];

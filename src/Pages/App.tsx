@@ -12,6 +12,7 @@ import {
   type Tag,
   type Targeted,
   type Transaction,
+  untagged,
 } from "../types";
 import { persist, undefineFalsy } from "../utilities";
 
@@ -43,8 +44,7 @@ export default function App() {
       ? transactions.filter(
           (transaction) =>
             transaction.tags.some((tag) => filterByTags.includes(tag.value)) ||
-            (transaction.tags.length === 0 &&
-              filterByTags.includes("untagged")),
+            (transaction.tags.length === 0 && filterByTags.includes(untagged)),
         )
       : transactions;
   });
@@ -65,41 +65,61 @@ export default function App() {
       .reverse();
   });
 
-  const getChartData = createMemo((): ChartProps["data"] => {
+  const getChartProps = createMemo((): ChartProps => {
     const groups = getTransactionsGroupedBy();
     const totals = groups.map((group) =>
       sum(group.transactions.map((v) => v.amount)),
     );
-    const absolute = totals.map((_, i, a) => sum(a.slice(0, i)));
+    const absolute = totals.map((_, i, a) => {
+      return sum(a.slice(0, i + 1));
+    });
+    let minY = 0;
+    let maxY = 0;
+    for (const n of absolute) {
+      minY = Math.min(minY, n);
+      maxY = Math.max(maxY, n);
+    }
 
     return {
-      labels: groups.map((group) => group.date.toLocaleDateString()),
-      datasets: [
-        {
-          label: "absolute",
-          data: absolute,
-          backgroundColor(ctx: any) {
-            const current = absolute[ctx.index] ?? 0;
-            const prev = absolute[ctx.index - 1] ?? current;
-            return current >= prev ? "green" : "red";
+      type: "line",
+      options: {
+        responsive: true,
+        scales: {
+          yAxis: {
+            min: minY * 1.05,
+            max: maxY * 1.05,
           },
-          segment: {
-            borderColor(ctx: any) {
-              const current = ctx.p0.y;
-              const prev = ctx.p1.y;
+        },
+      },
+      data: {
+        labels: groups.map((group) => group.date.toLocaleDateString()),
+        datasets: [
+          {
+            label: "absolute",
+            data: absolute,
+            backgroundColor(ctx: any) {
+              const current = absolute[ctx.index] ?? 0;
+              const prev = absolute[ctx.index - 1] ?? current;
               return current >= prev ? "green" : "red";
             },
+            segment: {
+              borderColor(ctx: any) {
+                const current = ctx.p0.y;
+                const prev = ctx.p1.y;
+                return current >= prev ? "green" : "red";
+              },
+            },
           },
-        },
-        {
-          label: "trend",
-          data: trend(absolute),
-          segment: {
-            backgroundColor: "yellow",
-            borderColor: "yellow",
+          {
+            label: "trend",
+            data: trend(absolute),
+            segment: {
+              backgroundColor: "yellow",
+              borderColor: "yellow",
+            },
           },
-        },
-      ],
+        ],
+      },
     };
   });
 
@@ -148,7 +168,6 @@ export default function App() {
           <label>
             <span>Filter By Tags</span>
             <select onInput={onFilterByTags} multiple>
-              <option value="untagged">untagged</option>
               <For each={tags.getValues()}>
                 {(value) => (
                   <option
@@ -171,13 +190,7 @@ export default function App() {
       </form>
       <details open>
         <summary>Graph</summary>
-        <Line
-          data={getChartData()}
-          options={{
-            responsive: true,
-            maintainAspectratio: false,
-          }}
-        />
+        <Line {...getChartProps()} />
       </details>
       <details open>
         <summary>
@@ -198,12 +211,13 @@ function groupByTransform(groupBy: GroupBy, date: Date): Date {
   return ret;
 }
 
-function trend(arr: number[], smooth = 3): number[] {
-  return arr.map((_, i, a) =>
-    sum(a.slice(Math.max(0, i - smooth), i + 1 + smooth)),
-  );
+function trend(arr: number[], smooth = 10): number[] {
+  return arr.map((_, i, a) => {
+    const slice = a.slice(Math.max(0, i - smooth), i + 1 + smooth);
+    return sum(slice) / slice.length;
+  });
 }
 
 function sum(array: number[]): number {
-  return array.reduce((acc, n) => acc + n, 0) / array.length;
+  return array.reduce((acc, n) => acc + n, 0);
 }

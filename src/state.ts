@@ -18,6 +18,7 @@ import {
   tagFields,
   transactionFields,
   type Upload,
+  untagged,
 } from "./types";
 import { persist } from "./utilities";
 
@@ -152,7 +153,9 @@ export const tags = createRoot(() => {
     return get().map((tag) => tag.regexp.source);
   });
   const getValues = createMemo((): Tag["value"][] => {
-    return get().map((tag) => tag.value);
+    const values = get().map((tag) => tag.value);
+    values.unshift(untagged);
+    return values;
   });
 
   function getTags(): Tag[] {
