@@ -95,8 +95,6 @@ export default function App() {
         break;
     }
 
-    console.debug({ data });
-
     let minY = 0;
     let maxY = 0;
     for (const n of data) {
@@ -264,7 +262,6 @@ function delta(arr: number[]): number[] {
   return arr.map((v, i, a) => {
     const current = v;
     const last = a[i - 2] ?? current;
-    console.debug({ i, current, last, a });
     return current - last;
   });
 }
