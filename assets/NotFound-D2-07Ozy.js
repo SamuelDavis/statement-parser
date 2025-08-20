@@ -1,0 +1,1 @@
+import{t as o,i,c as l}from"./index-MmfDRyuv.js";import{A as n}from"./components-Dr0OS3oD.js";var a=o("<article><h1>Not Found</h1><p>Go back ");function p(){return(()=>{var t=a(),r=t.firstChild,e=r.nextSibling;return e.firstChild,i(e,l(n,{href:"/",children:"Home"}),null),t})()}export{p as default};
