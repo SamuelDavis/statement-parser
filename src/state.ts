@@ -156,7 +156,7 @@ export const tags = createRoot(() => {
     return sources;
   });
   const getValues = createMemo((): Tag["value"][] => {
-    const values: Tag["value"][] = [];
+    const values: Tag["value"][] = [untagged];
     for (const tag of get())
       if (!values.includes(tag.value)) values.push(tag.value);
     return values;
