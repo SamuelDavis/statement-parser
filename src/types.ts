@@ -54,6 +54,8 @@ export type ComplexTransaction = Transaction & {
 };
 export const groupBy = ["day", "week", "month"] as const;
 export type GroupBy = (typeof groupBy)[number];
+export const view = ["absolute", "delta"] as const;
+export type View = (typeof view)[number];
 export type TaggedTransaction = Transaction & {
   tags: Tag[];
 };

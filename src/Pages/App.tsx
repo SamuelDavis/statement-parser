@@ -13,6 +13,8 @@ import {
   type Targeted,
   type Transaction,
   untagged,
+  view,
+  type View,
 } from "../types";
 import { persist, undefineFalsy } from "../utilities";
 
@@ -26,6 +28,10 @@ export default function App() {
       </article>
     );
 
+  const [getView, setView] = persist(createSignal<View>(view[0]), {
+    key: "view",
+    driver: "query",
+  });
   const [getGroupBy, setGroupBy] = persist(createSignal<GroupBy>(groupBy[1]), {
     key: "group-by",
     driver: "query",
@@ -67,15 +73,33 @@ export default function App() {
 
   const getChartProps = createMemo((): ChartProps => {
     const groups = getTransactionsGroupedBy();
-    const totals = groups.map((group) =>
-      sum(group.transactions.map((v) => v.amount)),
-    );
-    const absolute = totals.map((_, i, a) => {
-      return sum(a.slice(0, i + 1));
-    });
+    let data: number[] = [];
+
+    switch (getView()) {
+      case "absolute":
+        {
+          const totals = groups.map((group) =>
+            sum(group.transactions.map((v) => v.amount)),
+          );
+          data = totals.map((_, i, a) => {
+            return sum(a.slice(0, i + 1));
+          });
+        }
+        break;
+      case "delta":
+        {
+          data = delta(
+            groups.flatMap((group) => group.transactions.map((v) => v.amount)),
+          );
+        }
+        break;
+    }
+
+    console.debug({ data });
+
     let minY = 0;
     let maxY = 0;
-    for (const n of absolute) {
+    for (const n of data) {
       minY = Math.min(minY, n);
       maxY = Math.max(maxY, n);
     }
@@ -96,10 +120,10 @@ export default function App() {
         datasets: [
           {
             label: "absolute",
-            data: absolute,
+            data: data,
             backgroundColor(ctx: any) {
-              const current = absolute[ctx.index] ?? 0;
-              const prev = absolute[ctx.index - 1] ?? current;
+              const current = data[ctx.index] ?? 0;
+              const prev = data[ctx.index - 1] ?? current;
               return current >= prev ? "green" : "red";
             },
             segment: {
@@ -112,7 +136,7 @@ export default function App() {
           },
           {
             label: "trend",
-            data: trend(absolute),
+            data: trend(data),
             segment: {
               backgroundColor: "yellow",
               borderColor: "yellow",
@@ -125,6 +149,12 @@ export default function App() {
 
   function onSubmit(event: Targeted<SubmitEvent>): void {
     event.preventDefault();
+  }
+
+  function onView(event: Targeted<InputEvent, HTMLSelectElement>): void {
+    const { value } = event.currentTarget;
+    assert(isValueOf, value, view);
+    setView(value);
   }
 
   function onGroupBy(event: Targeted<InputEvent, HTMLSelectElement>): void {
@@ -152,6 +182,18 @@ export default function App() {
   return (
     <article>
       <form onSubmit={onSubmit}>
+        <label>
+          <span>View</span>
+          <select onInput={onView}>
+            <For each={view}>
+              {(value) => (
+                <option value={value} selected={getView() === value}>
+                  {value}
+                </option>
+              )}
+            </For>
+          </select>
+        </label>
         <label>
           <span>Group By</span>
           <select onInput={onGroupBy}>
@@ -215,6 +257,15 @@ function trend(arr: number[], smooth = 10): number[] {
   return arr.map((_, i, a) => {
     const slice = a.slice(Math.max(0, i - smooth), i + 1 + smooth);
     return sum(slice) / slice.length;
+  });
+}
+
+function delta(arr: number[]): number[] {
+  return arr.map((v, i, a) => {
+    const current = v;
+    const last = a[i - 2] ?? current;
+    console.debug({ i, current, last, a });
+    return current - last;
   });
 }
 
