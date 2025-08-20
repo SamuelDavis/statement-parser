@@ -150,11 +150,15 @@ export const tags = createRoot(() => {
     set((tags) => tags.map((t) => (t.value === tag.value ? value : t)));
   }
   const getSources = createMemo((): Tag["regexp"]["source"][] => {
-    return get().map((tag) => tag.regexp.source);
+    const sources: Tag["regexp"]["source"][] = [];
+    for (const tag of get())
+      if (!sources.includes(tag.regexp.source)) sources.push(tag.regexp.source);
+    return sources;
   });
   const getValues = createMemo((): Tag["value"][] => {
-    const values = get().map((tag) => tag.value);
-    values.unshift(untagged);
+    const values: Tag["value"][] = [];
+    for (const tag of get())
+      if (!values.includes(tag.value)) values.push(tag.value);
     return values;
   });
 
