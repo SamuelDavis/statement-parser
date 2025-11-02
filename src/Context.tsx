@@ -12,9 +12,11 @@ import type { Statement, Transaction, Tag } from "./types";
 type State = {
   getStatements: Accessor<Statement[]>;
   addStatement: (value: Statement) => void;
+  removeStatement: (value: Statement) => void;
   getTransactions: Accessor<Transaction[]>;
   getTags: Accessor<Tag[]>;
   addTag: (value: Tag) => void;
+  removeTag: (value: Tag) => void;
 };
 
 export const AppState = createContext<State>();
@@ -71,6 +73,11 @@ export function Provider(props: ParentProps) {
     addStatement(value: Statement): void {
       setStatements((statements) => [...statements, value]);
     },
+    removeStatement(value: Statement): void {
+      setStatements((statements) =>
+        statements.filter((statement) => statement.name !== value.name),
+      );
+    },
     getTransactions: createMemo(() =>
       getStatements()
         .reduce<Transaction[]>(
@@ -92,6 +99,9 @@ export function Provider(props: ParentProps) {
           return tags;
         return [...tags, value];
       });
+    },
+    removeTag(value: Tag): void {
+      setTags((tags) => tags.filter((tag) => tag.value !== value.value));
     },
   };
   return <AppState.Provider value={state}>{props.children}</AppState.Provider>;

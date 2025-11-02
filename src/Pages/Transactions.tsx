@@ -2,22 +2,24 @@ import { For, useContext, createSignal, createMemo, Show } from "solid-js";
 import { AppState } from "../Context";
 import HTMLDate from "../Components/HTMLDate";
 import HTMLNumber from "../Components/HTMLNumber";
-import type { Targeted } from "@samueldavis/tslib";
+import { assert, isNonNullable, type Targeted } from "@samueldavis/tslib";
 import { type Transaction, type Tag, createRegexp } from "../types";
 import Highlighted from "../Components/Highlighted";
 import TransactionsSummary from "../Components/TransactionsSummary";
 
 export default function Transactions() {
   const state = useContext(AppState);
+  assert(isNonNullable, state);
+
   const [getSearch, setSearch] = createSignal("");
   const [getTag, setTag] = createSignal("");
   const getRegExp = createRegexp(getSearch);
   const getTransactions = createMemo((): Transaction[] => {
     const regexp = getRegExp();
-    const transactions = state?.getTransactions() ?? [];
+    const transactions = state.getTransactions() ?? [];
     if (!regexp) return transactions;
 
-    const tags = state?.getTags().filter((tag) => tag.value.match(regexp));
+    const tags = state.getTags().filter((tag) => tag.value.match(regexp));
     return transactions.filter(
       (tx) =>
         tx.description.match(regexp) ||
@@ -35,11 +37,12 @@ export default function Transactions() {
 
   function onSubmit(event: Targeted<HTMLFormElement>): void {
     event.preventDefault();
+    assert(isNonNullable, state);
     const regexp = getRegExp();
     const value = getTag();
 
     if (regexp && value) {
-      state?.addTag({ value, regexp });
+      state.addTag({ value, regexp });
       event.currentTarget.reset();
     }
   }
@@ -86,7 +89,7 @@ export default function Transactions() {
             <TableGroup
               transaction={transaction}
               regexp={getRegExp()}
-              tags={state?.getTags()}
+              tags={state.getTags()}
             />
           )}
         </For>

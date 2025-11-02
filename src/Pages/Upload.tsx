@@ -2,6 +2,7 @@ import {
   assert,
   isArray,
   isInstanceOf,
+  isNonNullable,
   type Targeted,
 } from "@samueldavis/tslib";
 import { For, useContext } from "solid-js";
@@ -19,6 +20,8 @@ type LocalState = {
 
 export default function Upload() {
   const state = useContext(AppState);
+  assert(isNonNullable, state);
+
   const [localState, setLocalState] = createStore<LocalState>({
     name: "",
     fields: [],
@@ -78,6 +81,7 @@ export default function Upload() {
   }
   function onSubmit(event: Targeted<HTMLFormElement>): void {
     event.preventDefault();
+    assert(isNonNullable, state);
     const mapping = Object.entries(localState.fieldMap) as [Known, string][];
     const rows: Transaction[] = localState.rows.map((row) =>
       mapping.reduce(
@@ -85,7 +89,7 @@ export default function Upload() {
         {} as Transaction,
       ),
     );
-    state?.addStatement({
+    state.addStatement({
       name: localState.name,
       date: new Date(),
       rows: rows,

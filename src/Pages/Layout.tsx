@@ -14,6 +14,9 @@ export default function Layout(props: ParentProps) {
               <A href="/upload">Upload</A>
             </li>
             <li>
+              <A href="/statements">Statements</A>
+            </li>
+            <li>
               <A href="/transactions">Transactions</A>
             </li>
             <li>

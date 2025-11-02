@@ -4,18 +4,20 @@ import TransactionsSummary from "../Components/TransactionsSummary";
 import HTMLDate from "../Components/HTMLDate";
 import Highlighted from "../Components/Highlighted";
 import HTMLNumber from "../Components/HTMLNumber";
-import type { Targeted } from "@samueldavis/tslib";
+import { assert, isNonNullable, type Targeted } from "@samueldavis/tslib";
 import { createRegexp } from "../types";
 
 export default function Tags() {
   const state = useContext(AppState);
+  assert(isNonNullable, state);
+
   const [getSearch, setSearch] = createSignal("");
   function onSearch(event: Targeted<HTMLInputElement>): void {
     setSearch(event.currentTarget.value);
   }
   const getRegExp = createRegexp(getSearch);
   const getTags = () => {
-    const tags = state?.getTags() ?? [];
+    const tags = state.getTags() ?? [];
     const regexp = getRegExp();
     return regexp ? tags?.filter((tag) => tag.value.match(regexp)) : tags;
   };
@@ -33,13 +35,17 @@ export default function Tags() {
           {(tag) => {
             const getTransactions = () =>
               state
-                ?.getTransactions()
+                .getTransactions()
                 .filter((tx) => tx.description.match(tag.regexp)) ?? [];
             return (
               <section>
+                <header>
+                  <h2>{tag.value}</h2>
+                  <small>{tag.regexp.source}</small>
+                  <button onClick={[state.removeTag, tag]}>Delete</button>
+                </header>
                 <details>
                   <summary>
-                    <h2>{tag.value}</h2>
                     <TransactionsSummary transactions={getTransactions()} />
                   </summary>
                   <table>
