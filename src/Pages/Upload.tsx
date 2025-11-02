@@ -8,7 +8,7 @@ import { For, useContext } from "solid-js";
 import { createStore, produce } from "solid-js/store";
 import { parse } from "papaparse";
 import { AppState } from "../Context";
-import { fields, type Known, type Row } from "./../types.ts";
+import { fields, type Known, type Transaction } from "./../types.ts";
 
 type LocalState = {
   name: string;
@@ -79,13 +79,17 @@ export default function Upload() {
   function onSubmit(event: Targeted<HTMLFormElement>): void {
     event.preventDefault();
     const mapping = Object.entries(localState.fieldMap) as [Known, string][];
-    const rows: Row[] = localState.rows.map((row) =>
+    const rows: Transaction[] = localState.rows.map((row) =>
       mapping.reduce(
         (acc, [a, b]) => ({ ...acc, [a]: transform(a, row[b]) }),
-        {} as Row,
+        {} as Transaction,
       ),
     );
-    state?.addStatement({ name: localState.name, date: new Date(), rows });
+    state?.addStatement({
+      name: localState.name,
+      date: new Date(),
+      rows: rows,
+    });
     reset();
     event.currentTarget.reset();
   }

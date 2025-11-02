@@ -1,6 +1,8 @@
 import { For, useContext } from "solid-js";
 import { AppState } from "../Context";
 import { assert } from "@samueldavis/tslib";
+import HTMLDate from "../Components/HTMLDate";
+import HTMLNumber from "../Components/HTMLNumber";
 
 function isNonNullable<T>(v: T): v is NonNullable<T> {
   return v !== null && v !== undefined;
@@ -29,9 +31,13 @@ export default function Home() {
                 <For each={statement.rows.slice(0, 3)}>
                   {(row) => (
                     <tr>
-                      <td>{row.date.toLocaleDateString()}</td>
+                      <td>
+                        <HTMLDate value={row.date} />
+                      </td>
                       <td>{row.description}</td>
-                      <td>{row.amount.toLocaleString()}</td>
+                      <td>
+                        {<HTMLNumber value={row.amount} highlight money />}
+                      </td>
                     </tr>
                   )}
                 </For>

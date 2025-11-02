@@ -1,0 +1,15 @@
+mark {
+	padding: 0;
+}
+
+.money::before {
+	content: '$';
+}
+
+.positive {
+	color: var(--pico-ins-color);
+}
+
+.negative {
+	color: var(--pico-del-color);
+}
