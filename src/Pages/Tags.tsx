@@ -1,11 +1,11 @@
-import { useContext, For, createSignal } from "solid-js";
+import { useContext, For, createSignal, createMemo, Show } from "solid-js";
 import { AppState } from "../Context";
 import TransactionsSummary from "../Components/TransactionsSummary";
 import HTMLDate from "../Components/HTMLDate";
 import Highlighted from "../Components/Highlighted";
 import HTMLNumber from "../Components/HTMLNumber";
 import { assert, isNonNullable, type Targeted } from "@samueldavis/tslib";
-import { createRegexp } from "../types";
+import { createRegexp, type Tag, type Transaction } from "../types";
 
 export default function Tags() {
   const state = useContext(AppState);
@@ -32,61 +32,76 @@ export default function Tags() {
       </header>
       <dl>
         <For each={getTags()} fallback={<dt>No tags have been defined.</dt>}>
-          {(tag) => {
-            const getTransactions = () =>
-              state
-                .getTransactions()
-                .filter((tx) => tx.description.match(tag.regexp)) ?? [];
-            return (
-              <section>
-                <header>
-                  <h2>{tag.value}</h2>
-                  <small>{tag.regexp.source}</small>
-                  <button onClick={[state.removeTag, tag]}>Delete</button>
-                </header>
-                <details>
-                  <summary>
-                    <TransactionsSummary transactions={getTransactions()} />
-                  </summary>
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Date</th>
-                        <th>Description</th>
-                        <th>Amount</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <For each={getTransactions()}>
-                        {(transaction) => (
-                          <tr>
-                            <td>
-                              <HTMLDate value={transaction.date} />
-                            </td>
-                            <td>
-                              <Highlighted
-                                value={transaction.description}
-                                regexp={getRegExp()}
-                              />
-                            </td>
-                            <td>
-                              <HTMLNumber
-                                value={transaction.amount}
-                                highlight
-                                money
-                              />
-                            </td>
-                          </tr>
-                        )}
-                      </For>
-                    </tbody>
-                  </table>
-                </details>
-              </section>
-            );
-          }}
+          {(tag) => <TagTransactions tag={tag} regexp={getRegExp()} />}
         </For>
       </dl>
     </article>
+  );
+}
+
+function TagTransactions(props: { tag: Tag; regexp?: RegExp }) {
+  const state = useContext(AppState);
+  assert(isNonNullable, state);
+  const getTransactions = () => {
+    const transactions =
+      state
+        .getTransactions()
+        .filter((tx) => tx.description.match(props.tag.regexp)) ?? [];
+    return transactions.length > 0 ? transactions : undefined;
+  };
+
+  return (
+    <section>
+      <header>
+        <h2>{props.tag.value}</h2>
+        <small>{props.tag.regexp.source}</small>
+        <button onClick={[state.removeTag, props.tag]}>Delete</button>
+      </header>
+      <Show
+        when={getTransactions()}
+        fallback={<TransactionsSummary transactions={[]} />}
+      >
+        {(getTransactions) => (
+          <details>
+            <summary>
+              <TransactionsSummary transactions={getTransactions()} />
+            </summary>
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Description</th>
+                  <th>Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                <For each={getTransactions()}>
+                  {(transaction) => (
+                    <tr>
+                      <td>
+                        <HTMLDate value={transaction.date} />
+                      </td>
+                      <td>
+                        <Highlighted
+                          value={transaction.description}
+                          regexp={props.regexp}
+                        />
+                      </td>
+                      <td>
+                        <HTMLNumber
+                          value={transaction.amount}
+                          highlight
+                          money
+                        />
+                      </td>
+                    </tr>
+                  )}
+                </For>
+              </tbody>
+            </table>
+          </details>
+        )}
+      </Show>
+    </section>
   );
 }
