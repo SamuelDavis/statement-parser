@@ -16,6 +16,9 @@ export default function Layout(props: ParentProps) {
             <li>
               <A href="/transactions">Transactions</A>
             </li>
+            <li>
+              <A href="/tags">Tags</A>
+            </li>
           </ul>
         </nav>
       </header>

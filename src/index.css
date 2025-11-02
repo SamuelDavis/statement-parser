@@ -1,5 +1,36 @@
+*:has(table) {
+	overflow: auto;
+}
+
 mark {
 	padding: 0;
+}
+
+summary {
+	display: flex;
+	align-items: start;
+	flex-wrap: wrap;
+}
+
+summary>*:first-child {
+	flex: 1;
+}
+
+table ul,
+table li {
+	list-style: none;
+	padding: 0;
+	margin: 0
+}
+
+table ul {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 1ch;
+}
+
+table li:not(:last-child)::after {
+	content: ','
 }
 
 .money::before {

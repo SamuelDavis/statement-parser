@@ -1,51 +1,77 @@
-import { For, useContext, createSignal, createMemo } from "solid-js";
+import { For, useContext, createSignal, createMemo, Show } from "solid-js";
 import { AppState } from "../Context";
 import HTMLDate from "../Components/HTMLDate";
 import HTMLNumber from "../Components/HTMLNumber";
 import type { Targeted } from "@samueldavis/tslib";
-import type { Transaction } from "../types";
+import { type Transaction, type Tag, createRegexp } from "../types";
 import Highlighted from "../Components/Highlighted";
+import TransactionsSummary from "../Components/TransactionsSummary";
 
 export default function Transactions() {
   const state = useContext(AppState);
   const [getSearch, setSearch] = createSignal("");
-  const getRegExp = (): undefined | RegExp => {
-    const search = getSearch();
-    if (!search.trim()) return undefined;
-
-    try {
-      return new RegExp(getSearch(), "gi");
-    } catch (error) {
-      console.error(error);
-      return undefined;
-    }
-  };
+  const [getTag, setTag] = createSignal("");
+  const getRegExp = createRegexp(getSearch);
   const getTransactions = createMemo((): Transaction[] => {
     const regexp = getRegExp();
     const transactions = state?.getTransactions() ?? [];
-    return regexp
-      ? transactions.filter((tx) => tx.description.match(regexp))
-      : transactions;
+    if (!regexp) return transactions;
+
+    const tags = state?.getTags().filter((tag) => tag.value.match(regexp));
+    return transactions.filter(
+      (tx) =>
+        tx.description.match(regexp) ||
+        tags?.some((tag) => tx.description.match(tag.regexp)),
+    );
   });
-  const getTotal = createMemo(() =>
-    getTransactions().reduce((acc, transaction) => acc + transaction.amount, 0),
-  );
 
   function onSearch(event: Targeted<HTMLInputElement>): void {
     setSearch(event.currentTarget.value);
   }
 
+  function onTag(event: Targeted<HTMLInputElement>): void {
+    setTag(event.currentTarget.value);
+  }
+
+  function onSubmit(event: Targeted<HTMLFormElement>): void {
+    event.preventDefault();
+    const regexp = getRegExp();
+    const value = getTag();
+
+    if (regexp && value) {
+      state?.addTag({ value, regexp });
+      event.currentTarget.reset();
+    }
+  }
+
   return (
     <article>
       <header>
-        <label>
-          <span>Search</span>
-          <input type="search" value={getSearch()} onInput={onSearch} />
-        </label>
-        <p>
-          <HTMLNumber value={getTransactions().length} /> memos totalling{" "}
-          <HTMLNumber value={getTotal()} highlight money />.
-        </p>
+        <form onSubmit={onSubmit}>
+          <label>
+            <span>Search</span>
+            <input
+              type="search"
+              value={getSearch()}
+              onInput={onSearch}
+              required
+            />
+          </label>
+          <label for="tag">Tag</label>
+          <div role="group">
+            <input
+              id="tag"
+              type="text"
+              value={getTag()}
+              onInput={onTag}
+              required
+            />
+            <input type="submit" />
+          </div>
+        </form>
+      </header>
+      <header>
+        <TransactionsSummary transactions={getTransactions()} />
       </header>
       <table>
         <thead>
@@ -55,22 +81,72 @@ export default function Transactions() {
             <th>Amount</th>
           </tr>
         </thead>
-        <tbody>
-          <For each={getTransactions()}>
-            {(row) => (
-              <tr>
-                <td>
-                  <HTMLDate value={row.date} />
-                </td>
-                <td>
-                  <Highlighted value={row.description} regexp={getRegExp()} />
-                </td>
-                <td>{<HTMLNumber value={row.amount} highlight money />}</td>
-              </tr>
-            )}
-          </For>
-        </tbody>
+        <For each={getTransactions()}>
+          {(transaction) => (
+            <TableGroup
+              transaction={transaction}
+              regexp={getRegExp()}
+              tags={state?.getTags()}
+            />
+          )}
+        </For>
       </table>
     </article>
+  );
+}
+
+function TableGroup(props: {
+  transaction: Transaction;
+  regexp?: RegExp;
+  tags?: Tag[];
+}) {
+  const getTags = () => {
+    const tags = props.tags?.filter((tag) =>
+      props.transaction.description.match(tag.regexp),
+    );
+    return tags && tags.length > 0 ? tags : undefined;
+  };
+  return (
+    <tbody>
+      <tr>
+        <td>
+          <HTMLDate value={props.transaction.date} />
+        </td>
+        <td>
+          <Highlighted
+            value={props.transaction.description}
+            regexp={props.regexp}
+          />
+        </td>
+        <td>
+          {<HTMLNumber value={props.transaction.amount} highlight money />}
+        </td>
+      </tr>
+      <Show when={getTags()}>
+        {(tags) => (
+          <tr>
+            <th></th>
+            <td colspan={2}>
+              <ul>
+                <For each={tags()}>
+                  {(tag) => (
+                    <li>
+                      <small>
+                        <em>
+                          <Highlighted
+                            value={tag.value}
+                            regexp={props.regexp}
+                          />
+                        </em>
+                      </small>
+                    </li>
+                  )}
+                </For>
+              </ul>
+            </td>
+          </tr>
+        )}
+      </Show>
+    </tbody>
   );
 }

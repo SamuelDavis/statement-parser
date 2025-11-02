@@ -24,12 +24,12 @@ export default function Highlighted(props: { value: string; regexp?: RegExp }) {
   };
 
   return (
-    <div>
+    <span>
       <For each={getMatches()}>
         {({ value, match }) =>
           match ? <mark>{value}</mark> : <span>{value}</span>
         }
       </For>
-    </div>
+    </span>
   );
 }

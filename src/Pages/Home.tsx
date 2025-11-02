@@ -1,12 +1,8 @@
 import { For, useContext } from "solid-js";
 import { AppState } from "../Context";
-import { assert } from "@samueldavis/tslib";
 import HTMLDate from "../Components/HTMLDate";
 import HTMLNumber from "../Components/HTMLNumber";
-
-function isNonNullable<T>(v: T): v is NonNullable<T> {
-  return v !== null && v !== undefined;
-}
+import TransactionsSummary from "../Components/TransactionsSummary";
 
 export default function Home() {
   const state = useContext(AppState);
@@ -16,9 +12,13 @@ export default function Home() {
       <For each={state?.getStatements()}>
         {(statement) => (
           <article>
-            <h2>{statement.name}</h2>
-            <small>{statement.date.toLocaleDateString()}</small>
-            <p>There are {statement.rows.length} rows.</p>
+            <header>
+              <h2>{statement.name}</h2>
+              <HTMLDate value={statement.date} />
+            </header>
+            <p>
+              <TransactionsSummary transactions={statement.rows} />
+            </p>
             <table>
               <thead>
                 <tr>
@@ -41,6 +41,9 @@ export default function Home() {
                     </tr>
                   )}
                 </For>
+                <tr>
+                  <td colspan={3}>...</td>
+                </tr>
               </tbody>
             </table>
           </article>

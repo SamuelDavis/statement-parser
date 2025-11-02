@@ -7,12 +7,14 @@ import {
   createEffect,
   createMemo,
 } from "solid-js";
-import type { Statement, Transaction } from "./types";
+import type { Statement, Transaction, Tag } from "./types";
 
 type State = {
   getStatements: Accessor<Statement[]>;
-  getTransactions: Accessor<Transaction[]>;
   addStatement: (value: Statement) => void;
+  getTransactions: Accessor<Transaction[]>;
+  getTags: Accessor<Tag[]>;
+  addTag: (value: Tag) => void;
 };
 
 export const AppState = createContext<State>();
@@ -43,6 +45,27 @@ export function Provider(props: ParentProps) {
       },
     },
   );
+  const [getTags, setTags] = persist<Tag[]>(createSignal<Tag[]>([]), {
+    key: "tags",
+    listener: createEffect,
+    encode(value) {
+      return JSON.stringify(
+        value.map((value) => ({ ...value, regexp: value.regexp.source })),
+      );
+    },
+    decode(value) {
+      const data = JSON.parse(value);
+      const tags = isArray(data) ? data : [];
+
+      return tags.map(
+        (data: any): Tag => ({
+          ...data,
+          regexp: new RegExp(data.regexp, "gi"),
+        }),
+      );
+    },
+  });
+
   const state: State = {
     getStatements,
     addStatement(value: Statement): void {
@@ -56,6 +79,20 @@ export function Provider(props: ParentProps) {
         )
         .sort((a, b) => b.date.getTime() - a.date.getTime()),
     ),
+    getTags,
+    addTag(value: Tag): void {
+      setTags((tags) => {
+        if (
+          tags.some(
+            (tag) =>
+              tag.value === value.value &&
+              tag.regexp.source === value.regexp.source,
+          )
+        )
+          return tags;
+        return [...tags, value];
+      });
+    },
   };
   return <AppState.Provider value={state}>{props.children}</AppState.Provider>;
 }
