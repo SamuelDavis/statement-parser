@@ -10,6 +10,9 @@ export default function Layout(props: ParentProps) {
             <li>
               <A href="/">Home</A>
             </li>
+            <li>
+              <A href="/upload">Upload</A>
+            </li>
           </ul>
         </nav>
       </header>
