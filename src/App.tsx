@@ -5,11 +5,15 @@ const Layout = lazy(() => import("./Pages/Layout.tsx"));
 const Home = lazy(() => import("./Pages/Home.tsx"));
 const NotFound = lazy(() => import("./Pages/NotFound.tsx"));
 
+import { Provider } from "./Context.tsx";
+
 export default function App() {
   return (
-    <HashRouter root={Layout}>
-      <Route path="/" component={Home} />
-      <Route path="*404" component={NotFound} />
-    </HashRouter>
+    <Provider>
+      <HashRouter root={Layout}>
+        <Route path="/" component={Home} />
+        <Route path="*404" component={NotFound} />
+      </HashRouter>
+    </Provider>
   );
 }
