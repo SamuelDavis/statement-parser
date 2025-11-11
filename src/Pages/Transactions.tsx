@@ -44,6 +44,8 @@ export default function Transactions() {
     if (regexp && value) {
       state.addTag({ value, regexp });
       event.currentTarget.reset();
+      setSearch("");
+      setTag("");
     }
   }
 

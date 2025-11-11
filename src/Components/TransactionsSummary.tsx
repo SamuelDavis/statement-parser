@@ -1,15 +1,20 @@
 import { formatDuration, intervalToDuration, isEqual } from "date-fns";
 import type { Transaction } from "../types";
 import HTMLNumber from "./HTMLNumber";
+import { createMemo } from "solid-js";
 
 export default function TransactionsSummary(props: {
   transactions: Transaction[];
 }) {
+  const getTransactions = createMemo(() =>
+    props.transactions.sort((a, b) => b.date.getTime() - a.date.getTime()),
+  );
   const getTotal = () =>
-    props.transactions.reduce((acc, tx) => acc + tx.amount, 0);
+    getTransactions().reduce((acc, tx) => acc + tx.amount, 0);
   const getInterval = () => {
-    const end = props.transactions[0]?.date;
-    const start = props.transactions[props.transactions.length - 1]?.date;
+    const transactions = getTransactions();
+    const end = transactions[0]?.date;
+    const start = transactions[transactions.length - 1]?.date;
     if (start && end && !isEqual(start, end)) {
       const parts = formatDuration(
         intervalToDuration({ start: new Date(start), end: new Date(end) }),
@@ -24,7 +29,7 @@ export default function TransactionsSummary(props: {
   };
   return (
     <span>
-      <HTMLNumber value={props.transactions.length} />
+      <HTMLNumber value={getTransactions().length} />
       <span> transactions totalling </span>
       <HTMLNumber value={getTotal()} highlight money />
       <span> over {getInterval()}</span>.

@@ -21,11 +21,11 @@ export default function App() {
     >
       <Provider>
         <HashRouter root={Layout}>
-          <Route path="/" component={Home} />
           <Route path="/upload" component={Upload} />
           <Route path="/statements" component={Statements} />
           <Route path="/transactions" component={Transactions} />
           <Route path="/tags" component={Tags} />
+          <Route path="/*chart" component={Home} />
           <Route path="*404" component={NotFound} />
         </HashRouter>
       </Provider>
