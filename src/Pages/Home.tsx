@@ -135,7 +135,7 @@ function Graph(
   const getAbsoluteTotalData = () => {
     const buckets = getBuckets();
     const data = buckets.map((bucket) =>
-      bucket.transactions.slice(1).reduce((acc, tx) => acc + tx.amount, 0),
+      bucket.transactions.reduce((acc, tx) => acc + tx.amount, 0),
     );
     return {
       labels: buckets.map((bucket) => bucket.date.toLocaleDateString()),

@@ -13,18 +13,23 @@ export default function Transactions() {
 
   const [getSearch, setSearch] = createSignal("");
   const [getTag, setTag] = createSignal("");
+  const [getUntaggedOnly, setUntaggedOnly] = createSignal(false);
+
   const getRegExp = createRegexp(getSearch);
   const getTransactions = createMemo((): Transaction[] => {
     const regexp = getRegExp();
-    const transactions = state.getTransactions() ?? [];
-    if (!regexp) return transactions;
+    const tags = state.getTags();
+    const transactions = state.getTransactions();
 
-    const tags = state.getTags().filter((tag) => tag.value.match(regexp));
-    return transactions.filter(
-      (tx) =>
-        tx.description.match(regexp) ||
-        tags?.some((tag) => tx.description.match(tag.regexp)),
-    );
+    const matchingTransactions = regexp
+      ? transactions.filter((tx) => tx.description.match(regexp))
+      : transactions;
+    const untaggedOnly = getUntaggedOnly();
+
+    return matchingTransactions.filter((tx) => {
+      const isTagged = tags.some((tag) => tx.description.match(tag.regexp));
+      return untaggedOnly ? !isTagged : isTagged;
+    });
   });
 
   function onSearch(event: Targeted<HTMLInputElement>): void {
@@ -33,6 +38,10 @@ export default function Transactions() {
 
   function onTag(event: Targeted<HTMLInputElement>): void {
     setTag(event.currentTarget.value);
+  }
+
+  function onUntaggedOnly(event: Targeted<HTMLInputElement>): void {
+    setUntaggedOnly(event.currentTarget.checked);
   }
 
   function onSubmit(event: Targeted<HTMLFormElement>): void {
@@ -69,11 +78,25 @@ export default function Transactions() {
               type="text"
               value={getTag()}
               onInput={onTag}
+              list="tag-values"
               required
             />
+            <datalist id="tag-values">
+              <For each={state.getTags()}>
+                {(tag) => <option value={tag.value} />}
+              </For>
+            </datalist>
             <input type="submit" />
           </div>
         </form>
+        <label>
+          <span>Untagged Transactions Only</span>{" "}
+          <input
+            type="checkbox"
+            checked={getUntaggedOnly()}
+            onChange={onUntaggedOnly}
+          />
+        </label>
       </header>
       <header>
         <TransactionsSummary transactions={getTransactions()} />
