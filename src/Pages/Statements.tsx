@@ -3,7 +3,7 @@ import { AppState } from "../Context";
 import HTMLDate from "../Components/HTMLDate";
 import HTMLNumber from "../Components/HTMLNumber";
 import TransactionsSummary from "../Components/TransactionsSummary";
-import { assert, isNonNullable } from "@samueldavis/tslib";
+import { assert, HTMLIcon, isNonNullable } from "@samueldavis/solidlib";
 
 export default function Statements() {
   const state = useContext(AppState);
@@ -15,12 +15,16 @@ export default function Statements() {
         {(statement) => (
           <article>
             <header>
-              <h2>{statement.name}</h2>
-              <button onClick={[state.removeStatement, statement]}>
-                Delete
-              </button>
+              <h2>
+                <span>{statement.name}</span>
+                <HTMLIcon
+                  type="delete"
+                  onClick={[state.removeStatement, statement]}
+                />
+              </h2>
               <HTMLDate value={statement.date} />
             </header>
+            <header></header>
             <p>
               <TransactionsSummary transactions={statement.rows} />
             </p>

@@ -31,6 +31,11 @@ table li:not(:last-child)::after {
 	content: ','
 }
 
+header h2 {
+	display: flex;
+	justify-content: space-between;
+}
+
 .money::before {
 	content: '$';
 }

@@ -1,10 +1,9 @@
-import { isArray, persist } from "@samueldavis/tslib";
+import { isArray, persist } from "@samueldavis/solidlib";
 import {
   createContext,
   type Accessor,
   type ParentProps,
   createSignal,
-  createEffect,
   createMemo,
 } from "solid-js";
 import type { Statement, Transaction, Tag } from "./types";
@@ -25,7 +24,6 @@ export function Provider(props: ParentProps) {
     createSignal<Statement[]>([]),
     {
       key: "statements",
-      listener: createEffect,
       decode(value) {
         const data = JSON.parse(value);
         const statements = isArray(data) ? data : [];
@@ -49,7 +47,6 @@ export function Provider(props: ParentProps) {
   );
   const [getTags, setTags] = persist<Tag[]>(createSignal<Tag[]>([]), {
     key: "tags",
-    listener: createEffect,
     encode(value) {
       return JSON.stringify(
         value.map((value) => ({ ...value, regexp: value.regexp.source })),

@@ -2,7 +2,7 @@ import { For, useContext, createSignal, createMemo, Show } from "solid-js";
 import { AppState } from "../Context";
 import HTMLDate from "../Components/HTMLDate";
 import HTMLNumber from "../Components/HTMLNumber";
-import { assert, isNonNullable, type Targeted } from "@samueldavis/tslib";
+import { assert, isNonNullable, type Targeted } from "@samueldavis/solidlib";
 import { type Transaction, type Tag, createRegexp } from "../types";
 import Highlighted from "../Components/Highlighted";
 import TransactionsSummary from "../Components/TransactionsSummary";

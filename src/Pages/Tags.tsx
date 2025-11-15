@@ -1,11 +1,16 @@
-import { useContext, For, createSignal, createMemo, Show } from "solid-js";
+import { useContext, For, createSignal, Show } from "solid-js";
 import { AppState } from "../Context";
 import TransactionsSummary from "../Components/TransactionsSummary";
 import HTMLDate from "../Components/HTMLDate";
 import Highlighted from "../Components/Highlighted";
 import HTMLNumber from "../Components/HTMLNumber";
-import { assert, isNonNullable, type Targeted } from "@samueldavis/tslib";
-import { createRegexp, type Tag, type Transaction } from "../types";
+import {
+  assert,
+  HTMLIcon,
+  isNonNullable,
+  type Targeted,
+} from "@samueldavis/solidlib";
+import { createRegexp, type Tag } from "../types";
 
 export default function Tags() {
   const state = useContext(AppState);
@@ -53,9 +58,11 @@ function TagTransactions(props: { tag: Tag; regexp?: RegExp }) {
   return (
     <section>
       <header>
-        <h2>{props.tag.value}</h2>
+        <h2>
+          <span>{props.tag.value}</span>
+          <HTMLIcon type="delete" onClick={[state.removeTag, props.tag]} />
+        </h2>
         <small>{props.tag.regexp.source}</small>
-        <button onClick={[state.removeTag, props.tag]}>Delete</button>
       </header>
       <Show
         when={getTransactions()}

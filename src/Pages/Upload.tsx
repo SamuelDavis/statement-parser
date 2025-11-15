@@ -4,7 +4,7 @@ import {
   isInstanceOf,
   isNonNullable,
   type Targeted,
-} from "@samueldavis/tslib";
+} from "@samueldavis/solidlib";
 import { For, useContext } from "solid-js";
 import { createStore, produce } from "solid-js/store";
 import { parse } from "papaparse";

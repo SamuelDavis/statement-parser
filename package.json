@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@picocss/pico": "^2.1.1",
-    "@samueldavis/tslib": "github:SamuelDavis/tslib",
+    "@samueldavis/solidlib": "github:SamuelDavis/solidlib",
     "@solidjs/router": "^0.15.3",
     "chart.js": "^4.5.1",
     "date-fns": "^4.1.0",

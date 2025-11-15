@@ -18,7 +18,7 @@ import {
   isOf,
   type ExtendProps,
   type Targeted,
-} from "@samueldavis/tslib";
+} from "@samueldavis/solidlib";
 import type { Transaction, Tag } from "../types";
 import { isBefore, startOfISOWeek, startOfYear } from "date-fns";
 import HTMLDate from "../Components/HTMLDate";
