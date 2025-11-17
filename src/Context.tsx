@@ -83,23 +83,7 @@ export function Provider(props: ParentProps) {
         )
         .sort((a, b) => b.date.getTime() - a.date.getTime()),
     ),
-    getTags(): Tag[] {
-      const tags = getTags().reduce((acc, tag) => {
-        const tags = acc.get(tag.value);
-        if (tags) tags.push(tag);
-        else acc.set(tag.value, [tag]);
-        return acc;
-      }, new Map<string, Tag[]>());
-      return Array.from(tags.entries()).map(
-        ([value, tags]): Tag => ({
-          value,
-          regexp: new RegExp(
-            `(${tags.map((tag) => tag.regexp.source).join(")|(")})`,
-            "gi",
-          ),
-        }),
-      );
-    },
+    getTags,
     addTag(value: Tag): void {
       setTags((tags) => {
         if (

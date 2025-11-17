@@ -25,6 +25,7 @@ export default function App() {
           <Route path="/statements" component={Statements} />
           <Route path="/transactions" component={Transactions} />
           <Route path="/tags" component={Tags} />
+          <Route path="/tags/:id?" component={Tags} />
           <Route path="/*chart" component={Home} />
           <Route path="*404" component={NotFound} />
         </HashRouter>
