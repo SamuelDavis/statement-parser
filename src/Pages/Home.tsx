@@ -27,6 +27,7 @@ import HTMLNumber from "../Components/HTMLNumber";
 import { startOfMonth } from "date-fns/fp";
 import { Line } from "solid-chartjs";
 import { Chart, Colors, Legend, Title, Tooltip } from "chart.js";
+import TransactionsSummary from "../Components/TransactionsSummary";
 
 const chartNames = [
   "absolute-totals",
@@ -77,6 +78,27 @@ export default function Home() {
       }));
   });
 
+  const getTagInfo = createMemo(() => {
+    const tags = state.getTags().reduce<Tag[]>((tags, tag) => {
+      const s = tags.find((t) => t.value === tag.value);
+      if (s) {
+        s.regexp = new RegExp(`${s.regexp.source}|${tag.regexp.source}`, "gi");
+      } else tags.push(tag);
+
+      return tags;
+    }, []);
+
+    return tags
+      .map((tag) => {
+        const transactions = state
+          .getTransactions()
+          .filter((tx) => tx.description.match(tag.regexp));
+        const total = transactions.reduce((acc, tx) => acc + tx.amount, 0);
+        return { tag, transactions, total };
+      })
+      .sort((a, b) => Math.abs(b.total) - Math.abs(a.total));
+  });
+
   return (
     <article>
       <Show
@@ -89,7 +111,19 @@ export default function Home() {
       >
         <section>
           <h2>Tags</h2>
-          <p>You have {state.getTags().length} tag(s).</p>
+          <p>You have {getTagInfo().length} tag(s).</p>
+          <dl>
+            <For each={getTagInfo()}>
+              {(info) => (
+                <>
+                  <dt>{info.tag.value}</dt>
+                  <dd>
+                    <TransactionsSummary transactions={info.transactions} />
+                  </dd>
+                </>
+              )}
+            </For>
+          </dl>
         </section>
         <section>
           <h2>Statements</h2>
