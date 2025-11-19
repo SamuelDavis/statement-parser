@@ -196,6 +196,8 @@ function TagEditForm(props: ExtendProps<"form", { tag: Tag }>) {
     const value = data.get("value")?.toString();
     const sources = data.getAll("source");
 
+    console.debug({ tbd: { value, sources } });
+
     if (isFunction(props.onSubmit)) props.onSubmit(event);
     event.currentTarget.reset();
   }
