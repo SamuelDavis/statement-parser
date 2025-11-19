@@ -1,0 +1,1 @@
+import{t as i,i as n,c as o}from"./index-CnkTRWq-.js";import{A as l}from"./components-CtD-9JOC.js";var a=i("<article><h1>Not Found</h1><p>Try going ");function p(){return(()=>{var t=a(),e=t.firstChild,r=e.nextSibling;return r.firstChild,n(r,o(l,{href:"/",children:"Home"}),null),t})()}export{p as default};
