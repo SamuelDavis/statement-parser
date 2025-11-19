@@ -1,13 +1,14 @@
 import { formatDuration, intervalToDuration, isEqual } from "date-fns";
 import type { Transaction } from "../types";
 import HTMLNumber from "./HTMLNumber";
-import { createMemo } from "solid-js";
+import { createMemo, splitProps } from "solid-js";
+import type { ExtendProps } from "@samueldavis/solidlib";
 
-export default function TransactionsSummary(props: {
-  transactions: Transaction[];
-}) {
+type Props = ExtendProps<"p", { transactions: Transaction[] }>;
+export default function TransactionsSummary(props: Props) {
+  const [local, parent] = splitProps(props, ["transactions"]);
   const getTransactions = createMemo(() =>
-    props.transactions.sort((a, b) => b.date.getTime() - a.date.getTime()),
+    local.transactions.sort((a, b) => b.date.getTime() - a.date.getTime()),
   );
   const getTotal = () =>
     getTransactions().reduce((acc, tx) => acc + tx.amount, 0);
@@ -28,11 +29,11 @@ export default function TransactionsSummary(props: {
     return "some time";
   };
   return (
-    <span>
+    <p {...parent}>
       <HTMLNumber value={getTransactions().length} />
       <span> transactions totalling </span>
       <HTMLNumber value={getTotal()} highlight money />
       <span> over {getInterval()}</span>.
-    </span>
+    </p>
   );
 }

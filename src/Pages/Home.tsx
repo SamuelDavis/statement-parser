@@ -9,6 +9,7 @@ import {
   splitProps,
   Switch,
   Match,
+  type Signal,
 } from "solid-js";
 import { AppState } from "../Context";
 import { A, useParams } from "@solidjs/router";
@@ -26,7 +27,6 @@ import HTMLNumber from "../Components/HTMLNumber";
 import { startOfMonth } from "date-fns/fp";
 import { Line } from "solid-chartjs";
 import { Chart, Colors, Legend, Title, Tooltip } from "chart.js";
-import type { Signal } from "solid-js/types/server/reactive.js";
 
 const chartNames = [
   "absolute-totals",

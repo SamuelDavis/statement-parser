@@ -14,8 +14,13 @@ export default function Transactions() {
   const [getSearch, setSearch] = createSignal("");
   const [getTag, setTag] = createSignal("");
   const [getUntaggedOnly, setUntaggedOnly] = createSignal(false);
-
   const getRegExp = createRegexp(getSearch);
+  const getTagSuggestions = () =>
+    state
+      .getTags()
+      .map((tag) => tag.value)
+      .filter((v, i, a) => a.indexOf(v) === i)
+      .sort();
   const getTransactions = createMemo((): Transaction[] => {
     const regexp = getRegExp();
     const tags = state.getTags();
@@ -82,8 +87,8 @@ export default function Transactions() {
               required
             />
             <datalist id="tag-values">
-              <For each={state.getTags()}>
-                {(tag) => <option value={tag.value} />}
+              <For each={getTagSuggestions()}>
+                {(value) => <option value={value} />}
               </For>
             </datalist>
             <input type="submit" />

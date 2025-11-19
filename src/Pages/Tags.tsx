@@ -46,7 +46,7 @@ export default function Tags() {
     <article>
       <Show when={getTag()}>
         {(getTag) => (
-          <Modal portal onClose={onClose}>
+          <Modal onClose={onClose}>
             <article>
               <header>
                 <strong>Editing Tag "{getTag().value}"</strong>
@@ -63,11 +63,9 @@ export default function Tags() {
           <input type="search" value={getSearch()} onInput={onSearch} />
         </label>
       </header>
-      <dl>
-        <For each={getTags()} fallback={<dt>No tags have been defined.</dt>}>
-          {(tag) => <TagTransactions tag={tag} regexp={getRegExp()} />}
-        </For>
-      </dl>
+      <For each={getTags()} fallback={<dt>No tags have been defined.</dt>}>
+        {(tag) => <TagTransactions tag={tag} regexp={getRegExp()} />}
+      </For>
     </article>
   );
 }
@@ -75,34 +73,74 @@ export default function Tags() {
 function TagTransactions(props: { tag: Tag; regexp?: RegExp }) {
   const state = useContext(AppState);
   assert(isNonNullable, state);
-  const getTransactions = () => {
-    const transactions =
-      state
-        .getTransactions()
-        .filter((tx) => tx.description.match(props.tag.regexp)) ?? [];
-    return transactions.length > 0 ? transactions : undefined;
-  };
+  const [getPromptDelete, setPromptDelete] = createSignal(false);
+  const getTransactions = () =>
+    state
+      .getTransactions()
+      .filter((tx) => tx.description.match(props.tag.regexp)) ?? [];
+  const getSources = () =>
+    state
+      .getTags()
+      .filter((tag) => tag.value === props.tag.value)
+      .map((tag) => tag.regexp.source);
+
+  function onDeleteApprove(): void {
+    state?.removeTag(props.tag);
+  }
+  function onDeleteCancel(): void {
+    setPromptDelete(false);
+  }
 
   return (
-    <section>
+    <article>
       <header>
         <h2>
           <span>{props.tag.value}</span>
-          <A href={`/tags/${props.tag.value}`}>
+          <A role="button" href={`/tags/${props.tag.value}`}>
             <HTMLIcon type="edit" />
           </A>
+          <button onClick={[setPromptDelete, true]}>
+            <HTMLIcon type="delete" />
+          </button>
+          <Modal when={getPromptDelete()} onClose={onDeleteCancel}>
+            <article>
+              <header>
+                <strong>Delete tag {props.tag.value}?</strong>
+                <a rel="prev" onClick={onDeleteCancel} />
+              </header>
+              <TransactionsSummary transactions={getTransactions()} />
+              <section>
+                <strong>Associated Searches:</strong>
+                <ul>
+                  <For each={getSources()}>
+                    {(search) => (
+                      <li>
+                        <code>{search}</code>
+                      </li>
+                    )}
+                  </For>
+                </ul>
+              </section>
+              <footer>
+                <button onClick={onDeleteApprove}>Yes</button>
+                <button class="contrast" onclick={onDeleteCancel}>
+                  No
+                </button>
+              </footer>
+            </article>
+          </Modal>
         </h2>
         <small>{props.tag.regexp.source}</small>
       </header>
       <Show
-        when={getTransactions()}
+        when={getTransactions().length > 0}
         fallback={<TransactionsSummary transactions={[]} />}
       >
-        {(getTransactions) => (
-          <details>
-            <summary>
-              <TransactionsSummary transactions={getTransactions()} />
-            </summary>
+        <details>
+          <summary>
+            <TransactionsSummary transactions={getTransactions()} />
+          </summary>
+          <div>
             <table>
               <thead>
                 <tr>
@@ -136,10 +174,10 @@ function TagTransactions(props: { tag: Tag; regexp?: RegExp }) {
                 </For>
               </tbody>
             </table>
-          </details>
-        )}
+          </div>
+        </details>
       </Show>
-    </section>
+    </article>
   );
 }
 
@@ -184,7 +222,7 @@ function TagEditForm(props: ExtendProps<"form", { tag: Tag }>) {
           )}
         </For>
       </fieldset>
-      <input type="submit" />
+      <input type="submit" value="Save" />
     </form>
   );
 }
