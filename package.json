@@ -1,24 +1,31 @@
 {
-  "name": "statement-parser",
+  "name": "@samueldavis/statement-parser",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run"
   },
   "dependencies": {
     "@picocss/pico": "^2.1.1",
-    "@solidjs/router": "^0.15.3",
-    "papaparse": "^5.5.3",
-    "solid-chartjs": "^1.3.11",
-    "solid-js": "^1.9.7"
+    "@samueldavis/solidlib": "github:samueldavis/solidlib",
+    "@solidjs/router": "^0.15.4",
+    "chart.js": "^4.5.1",
+    "papaparse": "^5.7.0",
+    "solid-js": "^1.9.10"
   },
   "devDependencies": {
-    "@types/papaparse": "^5.3.16",
-    "typescript": "~5.8.3",
-    "vite": "^7.0.4",
-    "vite-plugin-solid": "^2.11.8"
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^24.10.1",
+    "@types/papaparse": "^5.5.2",
+    "jsdom": "^29.1.1",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~5.9.3",
+    "vite": "^7.2.4",
+    "vite-plugin-solid": "^2.11.10",
+    "vitest": "^5.0.3"
   }
 }

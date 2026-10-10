@@ -1,61 +1,68 @@
 import { A } from "@solidjs/router";
-import { ErrorBoundary, For, type ParentProps, Show } from "solid-js";
-import { assert, isInstanceOf } from "../types";
+import { ErrorBoundary, For, Suspense, type ParentProps } from "solid-js";
+
+const links = [
+  { href: "/", label: "Insights" },
+  { href: "/import", label: "Import" },
+  { href: "/tagging", label: "Tagging" },
+  { href: "/tags", label: "Tags" },
+] as const;
 
 export default function Layout(props: ParentProps) {
   return (
-    <main>
+    <>
       <header>
         <nav>
           <ul>
             <li>
-              <A href="/">Home</A>
+              <strong>Statement Parser</strong>
             </li>
-            <For
-              each={["Upload", "Statements", "Transactions", "Tags", "Tagging"]}
-            >
-              {(label) => (
+          </ul>
+          <ul>
+            <For each={links}>
+              {(link) => (
                 <li>
-                  <A href={`/${label.toLowerCase()}`}>{label}</A>
+                  <A href={link.href} end>
+                    {link.label}
+                  </A>
                 </li>
               )}
             </For>
           </ul>
         </nav>
       </header>
-      <ErrorBoundary fallback={onError}>{props.children}</ErrorBoundary>
-    </main>
+      <main>
+        <ErrorBoundary fallback={ErrorDialog}>
+          <Suspense fallback={<progress />}>{props.children}</Suspense>
+        </ErrorBoundary>
+      </main>
+    </>
   );
 }
 
-function onError(error: unknown, reset: () => void) {
+function ErrorDialog(error: unknown, reset: () => void) {
   console.error(error);
-  const onClearStorage = () => {
+
+  function onClearStorage(): void {
     localStorage.clear();
     window.location.reload();
-  };
-  assert(isInstanceOf, error, Error);
-  const [message, ...trace] = error.stack?.split("\n") ?? [];
+  }
+
   return (
     <dialog open>
       <article>
         <header>
-          <a href="#" type="button" rel="prev" onClick={reset} />
-          <h1>{error.name}</h1>
+          <h2>Something went wrong</h2>
         </header>
-        <Show when={isInstanceOf(error, TypeError)}>
-          <button type="button" onClick={onClearStorage}>
+        <pre>{error instanceof Error ? error.stack : String(error)}</pre>
+        <footer>
+          <button type="button" class="secondary" onClick={onClearStorage}>
             Clear Storage
           </button>
-        </Show>
-        <p>{error.message}</p>
-        <details open>
-          <summary>Trace</summary>
-          <output>{message}</output>
-          <ol>
-            <For each={trace}>{(line) => <li>{line}</li>}</For>
-          </ol>
-        </details>
+          <button type="button" onClick={reset}>
+            Retry
+          </button>
+        </footer>
       </article>
     </dialog>
   );

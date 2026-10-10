@@ -3,9 +3,12 @@ import { A } from "@solidjs/router";
 export default function NotFound() {
   return (
     <article>
-      <h1>Not Found</h1>
+      <header>
+        <h1>Not Found</h1>
+      </header>
+      <p>The page you're looking for could not be found.</p>
       <p>
-        Go back <A href="/">Home</A>
+        Try returning <A href="/">Home</A>.
       </p>
     </article>
   );

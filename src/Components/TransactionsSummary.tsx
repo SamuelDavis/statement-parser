@@ -1,38 +1,31 @@
-import { Show, splitProps } from "solid-js";
-import type { ExtendProps, Transaction } from "../types";
-import HTMLDate from "./HTMLDate";
-import HTMLNumber from "./HTMLNumber";
+import { Show } from "solid-js";
+import { HTMLDate, HTMLNumber } from "@samueldavis/solidlib";
+import { sum } from "../utils/analysis";
+import type { Transaction } from "../types";
+import Money from "./Money";
 
-type Props = ExtendProps<"span", { transactions: Transaction[] }, "children">;
-export default function TransactionsSummary(props: Props) {
-  const [local, parent] = splitProps(props, ["transactions"]);
-  const get = () => {
-    const from = local.transactions[0]?.date;
-    const to = local.transactions[local.transactions.length - 1]?.date;
-    const total = local.transactions.reduce(
-      (acc, transaction) => acc + transaction.amount,
-      0,
+export default function TransactionsSummary(props: {
+  transactions: Transaction[];
+}) {
+  const getRange = () => {
+    const times = props.transactions.map((transaction) =>
+      transaction.date.getTime(),
     );
-
-    return from && to ? { from, to, total } : undefined;
+    return times.length > 0
+      ? { from: new Date(Math.min(...times)), to: new Date(Math.max(...times)) }
+      : undefined;
   };
+  const getTotal = () =>
+    sum(props.transactions.map((transaction) => transaction.amount));
 
   return (
-    <Show when={get()}>
-      {(get) => (
-        <span {...parent}>
-          <HTMLNumber
-            value={local.transactions.length}
-            currency={false}
-            precision={0}
-          />
-          <span> transactions between </span>
-          <HTMLDate value={get().from} />
-          <span> and </span>
-          <HTMLDate value={get().to} />
-          <span> for a value of </span>
-          <HTMLNumber value={get().total} />
-          <span>.</span>
+    <Show when={getRange()} fallback={<span>No transactions.</span>}>
+      {(getRange) => (
+        <span>
+          <HTMLNumber value={props.transactions.length} precision={0} />{" "}
+          transactions from <HTMLDate value={getRange().from} /> to{" "}
+          <HTMLDate value={getRange().to} /> totalling{" "}
+          <Money value={getTotal()} />
         </span>
       )}
     </Show>
